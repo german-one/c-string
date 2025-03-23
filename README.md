@@ -1,6 +1,6 @@
 This is a type-safe, header-only implementation of a `std::basic_string`-like string in plain C code.  
 It can be considered an offshoot of the [c-vector](https://github.com/eteran/c-vector) library and is intended to be binary compatible with it. Many sequences of the `c-string` library essentially correspond to the `c-vector` library code. All credits go to [eteran](https://github.com/eteran) and contributors.  
-While the `c-vector` library implements macros to emulate methods of a `std::vector`, the `c-string` library is specialized for null-terminated strings of characters. Its macros emulate the subset of `std::basic_string` methods that can't be trivially performed with functions of the C string library.  
+While the `c-vector` library implements macros to emulate methods of a `std::vector`, the `c-string` library is specialized for null-terminated strings of characters. Its macros emulate the subset of `std::basic_string` methods that can't be trivially mimicked using functions of the C string library.  
   
 Just like the `cvector`, a `cstring` is prefixed with metadata, in the tradition of a length-prefixed string implementation.  
 The members of the `cstring` metadata are found at the same offset as those of a `cvector`. They count all characters (incl. the terminating null) which makes a `cstring` _interchangeable_ with a `cvector` of the same set of consecutive characters. Unlike the `cvector` macros (and as is usual for strings) the `cstring` macros, which return size and capacity, do not count the string terminator.  
@@ -80,7 +80,9 @@ int main(void) {
 | [`str.pop_back()`](https://en.cppreference.com/w/cpp/string/basic_string/pop_back) | `cstring_pop_back(str)` |
 | [`str.append(s, count)`](https://en.cppreference.com/w/cpp/string/basic_string/append) | `cstring_append(str, s, count)` |
 | [`str.replace(pos, count, s, count2)`](https://en.cppreference.com/w/cpp/string/basic_string/replace) | `cstring_replace(str, pos, count, s, count2)` |
-| [`from.copy(to, npos, 0)`](https://en.cppreference.com/w/cpp/string/basic_string/copy) | `cstring_copy(from, to)` |
+| [`from.copy(to, npos, 0)`](https://en.cppreference.com/w/cpp/string/basic_string/copy) | `cstring_copy(from, to)` [^1] |
 | [`str.resize(count, ch)`](https://en.cppreference.com/w/cpp/string/basic_string/resize) | `cstring_resize(str, count, ch)` |
 | [`str.swap(other)`](https://en.cppreference.com/w/cpp/string/basic_string/swap) | `cstring_swap(str, other)` |
 | [`to = from.substring(pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/substring) | `cstring_substring(from, pos, count, to)` |
+
+[^1]: This is `strdup()`-like behavior. For copying a substring see `cstring_substring()`.  
