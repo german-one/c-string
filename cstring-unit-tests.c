@@ -7,8 +7,28 @@ static const wchar_t wliteral[] = L"abcde";
 
 #define strlen_of(lit_) (sizeof(lit_) / sizeof((lit_)[0]) - 1)
 
-#define wcsequals(s1, s2) \
-    (wcscmp(s1, s2) == 0)
+#define wcseq(s1, s2) \
+    (wcscmp((s1), (s2)) == 0)
+
+UTEST(test, cstring_init) {
+    cstring_init(str, char);
+
+    ASSERT_NE(str, NULL);
+    ASSERT_EQ(cstring_size(str), 0U);
+    ASSERT_NE(cstring_capacity(str), 0U);
+
+    cstring_free(str);
+
+    /* -- wide string -- */
+
+    cstring_init(wstr, wchar_t);
+
+    ASSERT_NE(wstr, NULL);
+    ASSERT_EQ(cstring_size(wstr), 0U);
+    ASSERT_NE(cstring_capacity(wstr), 0U);
+
+    cstring_free(wstr);
+}
 
 UTEST(test, cstring_reserve) {
     cstring_string_type(char) str = NULL;
@@ -62,17 +82,17 @@ UTEST(test, cstring_assign) {
     cstring_assign(wstr, wliteral + 1, 3);
     ASSERT_EQ(cstring_size(wstr), 3U);
     ASSERT_EQ(cstring_capacity(wstr), 3U);
-    ASSERT_TRUE(wcsequals(wstr, L"bcd"));
+    ASSERT_TRUE(wcseq(wstr, L"bcd"));
 
     cstring_assign(wstr, wliteral, strlen_of(wliteral));
     ASSERT_EQ(cstring_size(wstr), strlen_of(wliteral));
     ASSERT_EQ(cstring_capacity(wstr), strlen_of(wliteral));
-    ASSERT_TRUE(wcsequals(wstr, wliteral));
+    ASSERT_TRUE(wcseq(wstr, wliteral));
 
     cstring_assign(wstr, wliteral + 1, 3);
     ASSERT_EQ(cstring_size(wstr), 3U);
     ASSERT_EQ(cstring_capacity(wstr), strlen_of(wliteral));
-    ASSERT_TRUE(wcsequals(wstr, L"bcd"));
+    ASSERT_TRUE(wcseq(wstr, L"bcd"));
 
     cstring_clear(wstr);
     ASSERT_EQ(cstring_size(wstr), 0U);
@@ -119,27 +139,27 @@ UTEST(test, cstring_erase) {
     cstring_assign(wstr, wliteral, strlen_of(wliteral));
     ASSERT_EQ(cstring_size(wstr), strlen_of(wliteral));
     ASSERT_EQ(cstring_capacity(wstr), strlen_of(wliteral));
-    ASSERT_TRUE(wcsequals(wstr, wliteral));
+    ASSERT_TRUE(wcseq(wstr, wliteral));
 
     cstring_erase(wstr, 3, 1);
     ASSERT_EQ(cstring_size(wstr), strlen_of(wliteral) - 1);
     ASSERT_EQ(cstring_capacity(wstr), strlen_of(wliteral));
-    ASSERT_TRUE(wcsequals(wstr, L"abce"));
+    ASSERT_TRUE(wcseq(wstr, L"abce"));
 
     cstring_erase(wstr, 3, 1);
     ASSERT_EQ(cstring_size(wstr), strlen_of(wliteral) - 2);
     ASSERT_EQ(cstring_capacity(wstr), strlen_of(wliteral));
-    ASSERT_TRUE(wcsequals(wstr, L"abc"));
+    ASSERT_TRUE(wcseq(wstr, L"abc"));
 
     cstring_erase(wstr, 0, 2);
     ASSERT_EQ(cstring_size(wstr), strlen_of(wliteral) - 4);
     ASSERT_EQ(cstring_capacity(wstr), strlen_of(wliteral));
-    ASSERT_TRUE(wcsequals(wstr, L"c"));
+    ASSERT_TRUE(wcseq(wstr, L"c"));
 
     cstring_erase(wstr, 0, 1000);
     ASSERT_EQ(cstring_size(wstr), 0U);
     ASSERT_EQ(cstring_capacity(wstr), strlen_of(wliteral));
-    ASSERT_TRUE(wcsequals(wstr, L""));
+    ASSERT_TRUE(wcseq(wstr, L""));
 
     cstring_free(wstr);
 }
@@ -193,7 +213,7 @@ UTEST(test, cstring_push_back) {
 
     cstring_push_back(wstr, L'f');
     ASSERT_EQ(cstring_size(wstr), strlen_of(wliteral) + 1);
-    ASSERT_TRUE(wcsequals(wstr, L"abcdef"));
+    ASSERT_TRUE(wcseq(wstr, L"abcdef"));
 
     cstring_free(wstr);
 }
@@ -229,17 +249,17 @@ UTEST(test, cstring_insert) {
     cstring_assign(wstr, wlit1, strlen_of(wlit1));
     cstring_insert(wstr, 2, wlit2, strlen_of(wlit2));
     ASSERT_EQ(cstring_size(wstr), 6U);
-    ASSERT_TRUE(wcsequals(wstr, L"012345"));
+    ASSERT_TRUE(wcseq(wstr, L"012345"));
 
     cstring_insert(wstr, 6, wlit2, strlen_of(wlit2));
     ASSERT_EQ(cstring_size(wstr), 8U);
-    ASSERT_TRUE(wcsequals(wstr, L"01234523"));
+    ASSERT_TRUE(wcseq(wstr, L"01234523"));
 
     cstring_insert(wstr, 0, wlit2, strlen_of(wlit2));
     ASSERT_EQ(cstring_size(wstr), 10U);
     ASSERT_EQ(*cstring_front(wstr), L'2');
     ASSERT_EQ(*cstring_back(wstr), L'3');
-    ASSERT_TRUE(wcsequals(wstr, L"2301234523"));
+    ASSERT_TRUE(wcseq(wstr, L"2301234523"));
 
     cstring_free(wstr);
 }
@@ -265,7 +285,7 @@ UTEST(test, cstring_replace) {
     cstring_replace(wstr, 1, 2, wrepl, strlen_of(wrepl));
 
     ASSERT_EQ(cstring_size(wstr), strlen_of(wliteral) + 1);
-    ASSERT_TRUE(wcsequals(wstr, L"afoode"));
+    ASSERT_TRUE(wcseq(wstr, L"afoode"));
 
     cstring_free(wstr);
 }
@@ -287,7 +307,7 @@ UTEST(test, cstring_append) {
 
     cstring_append(wstr, wliteral, strlen_of(wliteral));
     ASSERT_EQ(cstring_size(wstr), 2 * strlen_of(wliteral));
-    ASSERT_TRUE(wcsequals(wstr, L"abcdeabcde"));
+    ASSERT_TRUE(wcseq(wstr, L"abcdeabcde"));
 
     cstring_free(wstr);
 }
@@ -336,7 +356,7 @@ UTEST(test, cstring_copy) {
     cstring_copy(wstr, wother);
     ASSERT_EQ(cstring_size(wstr), cstring_size(wother));
     ASSERT_EQ(wother[cstring_size(wother)], L'\0');
-    ASSERT_TRUE(wcsequals(wother, wliteral));
+    ASSERT_TRUE(wcseq(wother, wliteral));
 
     cstring_free(wother);
     cstring_free(wstr);
@@ -362,7 +382,7 @@ UTEST(test, cstring_substring) {
 
     cstring_substring(wstr, 1, 3, wsubstr);
     ASSERT_EQ(cstring_size(wsubstr), 3U);
-    ASSERT_TRUE(wcsequals(wsubstr, L"bcd"));
+    ASSERT_TRUE(wcseq(wsubstr, L"bcd"));
 
     cstring_free(wsubstr);
     cstring_free(wstr);
@@ -397,14 +417,14 @@ UTEST(test, cstring_swap) {
 
     ASSERT_EQ(cstring_size(wstr1), 2U);
     ASSERT_EQ(cstring_size(wstr2), 3U);
-    ASSERT_TRUE(wcsequals(wstr1, L"ab"));
-    ASSERT_TRUE(wcsequals(wstr2, L"cde"));
+    ASSERT_TRUE(wcseq(wstr1, L"ab"));
+    ASSERT_TRUE(wcseq(wstr2, L"cde"));
 
     cstring_swap(wstr1, wstr2);
     ASSERT_EQ(cstring_size(wstr1), 3U);
     ASSERT_EQ(cstring_size(wstr2), 2U);
-    ASSERT_TRUE(wcsequals(wstr1, L"cde"));
-    ASSERT_TRUE(wcsequals(wstr2, L"ab"));
+    ASSERT_TRUE(wcseq(wstr1, L"cde"));
+    ASSERT_TRUE(wcseq(wstr2, L"ab"));
 
     cstring_free(wstr2);
     cstring_free(wstr1);
@@ -483,11 +503,11 @@ UTEST(test, cstring_resize) {
 
     cstring_resize(wstr, 10, L'x');
     ASSERT_EQ(cstring_size(wstr), 10U);
-    ASSERT_TRUE(wcsequals(wstr, L"abcdexxxxx"));
+    ASSERT_TRUE(wcseq(wstr, L"abcdexxxxx"));
 
     cstring_resize(wstr, 4, L'x');
     ASSERT_EQ(cstring_size(wstr), 4U);
-    ASSERT_TRUE(wcsequals(wstr, L"abcd"));
+    ASSERT_TRUE(wcseq(wstr, L"abcd"));
 
     cstring_free(wstr);
 }

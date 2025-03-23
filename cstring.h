@@ -48,23 +48,38 @@
 
 /**
  * @brief cstring_string_type - The string type used in this library
+ * @param type The type of string to act on.
  */
 #define cstring_string_type(type) type *
 
 /**
  * @brief cstring - Syntactic sugar to retrieve a string type
- *
  * @param type The type of string to act on.
  */
 #define cstring(type) cstring_string_type(type)
 
 /**
- * @brief cstring_iterator - The iterator type used for cstring
+ * @brief cstring_iterator - The iterator type used for a string
+ * @param type The type of iterator to act on.
  */
 #define cstring_iterator(type) cstring_string_type(type)
 
 /* --------------------------------- */
 /* --- construction, destruction --- */
+
+/**
+ * @brief cstring_init - Allocate a new cstring with zero length.
+ * @param name - a not yet used variable name for the cstring variable to be declared and initialized
+ * @param type - the type of string to act on
+ * @return void
+ */
+#define cstring_init(name, type)                                                   \
+    cstring_string_type(type) name = NULL;                                         \
+    do {                                                                           \
+        cstring_grow_((name), ((64 - sizeof(cstring_metadata_t)) / sizeof(type))); \
+        (name)[0] = 0;                                                             \
+        cstring_set_ttl_siz_((name), 1);                                           \
+    } while (0)
 
 /**
  * @brief cstring_assign - Assign a string to a cstring.
