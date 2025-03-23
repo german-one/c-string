@@ -59,8 +59,9 @@ int main(void) {
 
 | **std::basic_string** | **cstring** |
 | --------------------- | ----------- |
-| [`str.assign(s, count)`](https://en.cppreference.com/w/cpp/string/basic_string/assign) | `cstring_assign(str, s, count)` |
+| [`std::basic_string<char> str{};`](https://en.cppreference.com/w/cpp/string/basic_string/basic_string) | `cstring_string_type(char) str = NULL;` |
 | [Destructor](https://en.cppreference.com/w/cpp/string/basic_string/%7Ebasic_string) | `cstring_free(str)` |
+| [`str.assign(s, count)`](https://en.cppreference.com/w/cpp/string/basic_string/assign) | `cstring_assign(str, s, count)` |
 | [`str.at(pos)`](https://en.cppreference.com/w/cpp/string/basic_string/at) | `cstring_at(str, pos)` |
 | [`str[pos]`](https://en.cppreference.com/w/cpp/string/basic_string/operator_at) | `str[pos]` |
 | [`str.front()`](https://en.cppreference.com/w/cpp/string/basic_string/front) | `cstring_front(str)` |
