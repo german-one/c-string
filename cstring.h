@@ -421,15 +421,15 @@
  * @param to - destination to which the substring is copied
  * @return void
  */
-#define cstring_substring(from, pos, n, to)                                                                                \
-    do {                                                                                                                   \
-        if ((from) && (size_t)(pos) < cstring_size(from)) {                                                                \
-            const size_t cs_count__ = (size_t)(pos) + (n) > cstring_size(from) ? cstring_size(from) - (pos) : (size_t)(n); \
-            cstring_grow_((to), cs_count__ + 1);                                                                           \
-            cstring_set_ttl_siz_((to), cs_count__ + 1);                                                                    \
-            cstring_clib_memcpy((to), (from) + (pos), cs_count__ * sizeof(*(from)));                                       \
-            (to)[cs_count__] = 0;                                                                                          \
-        }                                                                                                                  \
+#define cstring_substring(from, pos, n, to)                                                                                 \
+    do {                                                                                                                    \
+        if ((from) && (size_t)(pos) < cstring_size(from)) {                                                                 \
+            const size_t cs_count___ = (size_t)(pos) + (n) > cstring_size(from) ? cstring_size(from) - (pos) : (size_t)(n); \
+            cstring_grow_((to), cs_count___ + 1);                                                                           \
+            cstring_set_ttl_siz_((to), cs_count___ + 1);                                                                    \
+            cstring_clib_memcpy((to), (from) + (pos), cs_count___ * sizeof(*(from)));                                       \
+            (to)[cs_count___] = 0;                                                                                          \
+        }                                                                                                                   \
     } while (0)
 
 /* ------------------ */
