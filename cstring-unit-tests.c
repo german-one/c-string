@@ -276,10 +276,10 @@ UTEST(test, cstring_replace) {
 
     cstring_free(str);
 
+    /* -- wide string -- */
+
     cstring_string_type(wchar_t) wstr = NULL;
     cstring_assign(wstr, wliteral, strlen_of(wliteral));
-
-    /* -- wide string -- */
 
     static const wchar_t wrepl[] = L"foo";
     cstring_replace(wstr, 1, 2, wrepl, strlen_of(wrepl));
