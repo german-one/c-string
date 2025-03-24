@@ -259,20 +259,22 @@
  * @param count - number of consecutive characters to be used
  * @return void
  */
-#define cstring_insert(str, pos, ptr, count)                                 \
-    do {                                                                     \
-        if (cstring_capacity(str) < cstring_size(str) + (count)) {           \
-            cstring_grow_((str), cstring_ttl_siz_(str) + (count));           \
-        }                                                                    \
-        if ((pos) < cstring_size(str)) {                                     \
-            cstring_clib_memmove(                                            \
-                (str) + (pos) + (count),                                     \
-                (str) + (pos),                                               \
-                sizeof(*(str)) * ((cstring_size(str)) - (pos)));             \
-        }                                                                    \
-        cstring_clib_memcpy((str) + (pos), (ptr), (count) * sizeof(*(ptr))); \
-        cstring_set_ttl_siz_((str), cstring_ttl_siz_(str) + (count));        \
-        (str)[cstring_size(str)] = 0;                                        \
+#define cstring_insert(str, pos, ptr, count)                                     \
+    do {                                                                         \
+        if (str) {                                                               \
+            if (cstring_capacity(str) < cstring_size(str) + (count)) {           \
+                cstring_grow_((str), cstring_ttl_siz_(str) + (count));           \
+            }                                                                    \
+            if ((pos) < cstring_size(str)) {                                     \
+                cstring_clib_memmove(                                            \
+                    (str) + (pos) + (count),                                     \
+                    (str) + (pos),                                               \
+                    sizeof(*(str)) * ((cstring_size(str)) - (pos)));             \
+            }                                                                    \
+            cstring_clib_memcpy((str) + (pos), (ptr), (count) * sizeof(*(ptr))); \
+            cstring_set_ttl_siz_((str), cstring_ttl_siz_(str) + (count));        \
+            (str)[cstring_size(str)] = 0;                                        \
+        }                                                                        \
     } while (0)
 
 /**
@@ -300,14 +302,16 @@
  * @param value - the character to add
  * @return void
  */
-#define cstring_push_back(str, value)                           \
-    do {                                                        \
-        if (cstring_capacity(str) < cstring_size(str) + 1) {    \
-            cstring_grow_((str), cstring_ttl_siz_(str) + 1);    \
-        }                                                       \
-        (str)[cstring_size(str)] = (value);                     \
-        cstring_set_ttl_siz_((str), cstring_ttl_siz_(str) + 1); \
-        (str)[cstring_size(str)] = 0;                           \
+#define cstring_push_back(str, value)                               \
+    do {                                                            \
+        if (str) {                                                  \
+            if (cstring_capacity(str) < cstring_size(str) + 1) {    \
+                cstring_grow_((str), cstring_ttl_siz_(str) + 1);    \
+            }                                                       \
+            (str)[cstring_size(str)] = (value);                     \
+            cstring_set_ttl_siz_((str), cstring_ttl_siz_(str) + 1); \
+            (str)[cstring_size(str)] = 0;                           \
+        }                                                           \
     } while (0)
 
 /**
