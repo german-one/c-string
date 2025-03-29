@@ -56,7 +56,7 @@
             const size_t size;                                                                                               \
             const size_t capacity;                                                                                           \
             void (*const unused)(void *);                                                                                    \
-            const type data[((sizeof(lit) / sizeof(*(lit)) + sizeof(size_t) - 1) / sizeof(size_t)) * sizeof(size_t)];        \
+            const type data[((sizeof(lit) + sizeof(size_t) - 1) / sizeof(size_t)) * sizeof(size_t) / sizeof(type)];          \
         } _cstring_literal_container_##name = {(sizeof(lit) / sizeof(*(lit))), (sizeof(lit) / sizeof(*(lit))), NULL, (lit)}; \
         name                                = &*_cstring_literal_container_##name.data;                                      \
     } while (0)
