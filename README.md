@@ -59,7 +59,7 @@ int main(void) {
 
 | **std::basic_string** | **cstring** |
 | --------------------- | ----------- |
-| [`std::basic_string<char> str{};`](https://en.cppreference.com/w/cpp/string/basic_string/basic_string) | `cstring_string_type(char) str = NULL;` [^1],<br>`cstring_init(name, type)` [^2] |
+| [`std::basic_string<type> str{};`](https://en.cppreference.com/w/cpp/string/basic_string/basic_string) | `cstring_string_type(type) str = NULL;` [^1],<br>`cstring_literal(name, type, lit)` [^2],<br>`cstring_init(name, type)` [^3] |
 | [Destructor](https://en.cppreference.com/w/cpp/string/basic_string/%7Ebasic_string) | `cstring_free(str)` |
 | [`str.assign(s, count)`](https://en.cppreference.com/w/cpp/string/basic_string/assign) | `cstring_assign(str, s, count)` |
 | [`str.at(pos)`](https://en.cppreference.com/w/cpp/string/basic_string/at) | `cstring_at(str, pos)` |
@@ -81,11 +81,12 @@ int main(void) {
 | [`str.pop_back()`](https://en.cppreference.com/w/cpp/string/basic_string/pop_back) | `cstring_pop_back(str)` |
 | [`str.append(s, count)`](https://en.cppreference.com/w/cpp/string/basic_string/append) | `cstring_append(str, s, count)` |
 | [`str.replace(pos, count, s, count2)`](https://en.cppreference.com/w/cpp/string/basic_string/replace) | `cstring_replace(str, pos, count, s, count2)` |
-| [`from.copy(to, npos, 0)`](https://en.cppreference.com/w/cpp/string/basic_string/copy) | `cstring_copy(from, to)` [^3] |
+| [`from.copy(to, npos, 0)`](https://en.cppreference.com/w/cpp/string/basic_string/copy) | `cstring_copy(from, to)` [^4] |
 | [`str.resize(count, ch)`](https://en.cppreference.com/w/cpp/string/basic_string/resize) | `cstring_resize(str, count, ch)` |
 | [`str.swap(other)`](https://en.cppreference.com/w/cpp/string/basic_string/swap) | `cstring_swap(str, other)` |
 | [`to = from.substring(pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/substring) | `cstring_substring(from, pos, count, to)` |
 
-[^1]: Initializes a NULL string.  
-[^2]: Allocates and initializes a zero-length string.  
-[^3]: This is `strdup()`-like behavior. For copying a substring see `cstring_substring()`.  
+[^1]: Initializes a NULL string. Nothing similar for `std::basic_string`.  
+[^2]: Declares a static cstring literal of `const type`. This is comparable with a C++20 `constexpr std::basic_string`.  
+[^3]: Allocates and initializes a zero-length string.  
+[^4]: This creates a duplicate of the string. For copying a substring see `cstring_substring()`.  

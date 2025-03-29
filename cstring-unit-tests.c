@@ -11,6 +11,20 @@ static const wchar_t wliteral[] = L"abcde";
 #define wcseq(s1, s2) \
     (wcscmp((s1), (s2)) == 0)
 
+UTEST(test, cstring_literal) {
+    cstring_literal(lit, char, "abc");
+    ASSERT_EQ(cstring_size(lit), 3U);
+    ASSERT_EQ(cstring_capacity(lit), 3U);
+    ASSERT_STREQ(lit, "abc");
+
+    /* -- wide string -- */
+
+    cstring_literal(wlit, wchar_t, L"abc");
+    ASSERT_EQ(cstring_size(wlit), 3U);
+    ASSERT_EQ(cstring_capacity(wlit), 3U);
+    ASSERT_TRUE(wcseq(wlit, L"abc"));
+}
+
 UTEST(test, cstring_init) {
     cstring_init(str, char);
 
