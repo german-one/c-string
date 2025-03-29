@@ -47,18 +47,19 @@
  *       compile time. DO NOT FREE IT.
  * @param name - A not yet used variable name for the cstring object.
  * @param type - The type of string to act on.
- * @param lit  - A string literal used to create the cstring literal.
+ * @param lit  - A string literal used to create the cstring literal. The
+ *               argument passed to this parameter cannot be a pointer!
  */
-#define cstring_literal(name, type, lit)                                                                                     \
-    cstring_string_type(const type) name;                                                                                    \
-    do {                                                                                                                     \
-        static const struct _cstring_literal_tag_##name {                                                                    \
-            const size_t size;                                                                                               \
-            const size_t capacity;                                                                                           \
-            void (*const unused)(void *);                                                                                    \
-            const type data[((sizeof(lit) + sizeof(size_t) - 1) / sizeof(size_t)) * sizeof(size_t) / sizeof(type)];          \
-        } _cstring_literal_container_##name = {(sizeof(lit) / sizeof(*(lit))), (sizeof(lit) / sizeof(*(lit))), NULL, (lit)}; \
-        name                                = &*_cstring_literal_container_##name.data;                                      \
+#define cstring_literal(name, type, lit)                                                                                 \
+    cstring_string_type(const type) name;                                                                                \
+    do {                                                                                                                 \
+        static const struct _cstring_literal_tag_##name {                                                                \
+            const size_t size;                                                                                           \
+            const size_t capacity;                                                                                       \
+            void (*const unused)(void *);                                                                                \
+            const type data[((sizeof(lit) + sizeof(size_t) - 1) / sizeof(size_t)) * sizeof(size_t) / sizeof(type)];      \
+        } _cstring_literal_container_##name = {(sizeof(lit) / sizeof(type)), (sizeof(lit) / sizeof(type)), NULL, (lit)}; \
+        name                                = &*_cstring_literal_container_##name.data;                                  \
     } while (0)
 
 /* --------------------------------- */
