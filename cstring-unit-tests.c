@@ -419,7 +419,10 @@ UTEST(test, cstring_push_back) {
 
     cstring_string_type(char) nullstr = NULL;
     cstring_push_back(nullstr, 'x');
-    ASSERT_EQ(nullstr, NULL);
+    ASSERT_EQ(cstring_size(nullstr), 1U);
+    ASSERT_EQ(cstring_capacity(nullstr), 1U);
+    ASSERT_STREQ(nullstr, "x");
+    cstring_free(nullstr);
 }
 
 UTEST(test, cstring_pop_back) {
@@ -480,7 +483,8 @@ UTEST(test, cstring_append) {
 
     cstring_string_type(char) nullstr = NULL;
     cstring_append(nullstr, literal, strlen_of(literal));
-    ASSERT_EQ(nullstr, NULL);
+    ASSERT_STREQ(nullstr, literal);
+    cstring_free(nullstr);
 
     cstring_init(zerolenstr, char);
     cstring_append(zerolenstr, literal, strlen_of(literal));
@@ -558,15 +562,30 @@ UTEST(test, cstring_copy) {
     cstring_copy(nullstr, other);
     ASSERT_EQ(nullstr, NULL);
     ASSERT_EQ(other, NULL);
+
+    cstring_assign(str, literal, strlen_of(literal));
+    cstring_assign(other, "a", 1);
+    cstring_copy(str, other);
+    ASSERT_EQ(cstring_size(other), strlen_of(literal));
+    ASSERT_STREQ(other, literal);
+
+    static const char lit2[] = "1234567890";
+    cstring_assign(other, lit2, strlen_of(lit2));
+    cstring_copy(str, other);
+    ASSERT_EQ(cstring_size(other), strlen_of(literal));
+    ASSERT_STREQ(other, literal);
+
+    cstring_free(other);
+    cstring_free(str);
 }
 
 UTEST(test, cstring_resize) {
     cstring_string_type(char) str = NULL;
     cstring_assign(str, literal, strlen_of(literal));
 
-    cstring_resize(str, 10, 'x');
-    ASSERT_EQ(cstring_size(str), 10U);
-    ASSERT_STREQ(str, "abcdexxxxx");
+    cstring_resize(str, strlen_of(literal) + 1, 'x');
+    ASSERT_EQ(cstring_size(str), strlen_of(literal) + 1);
+    ASSERT_STREQ(str, "abcdex");
 
     cstring_resize(str, 4, 'x');
     ASSERT_EQ(cstring_size(str), 4U);
@@ -579,9 +598,9 @@ UTEST(test, cstring_resize) {
     cstring_string_type(wchar_t) wstr = NULL;
     cstring_assign(wstr, wliteral, strlen_of(wliteral));
 
-    cstring_resize(wstr, 10, L'x');
-    ASSERT_EQ(cstring_size(wstr), 10U);
-    ASSERT_TRUE(wcseq(wstr, L"abcdexxxxx"));
+    cstring_resize(wstr, strlen_of(wliteral) + 1, L'x');
+    ASSERT_EQ(cstring_size(wstr), strlen_of(wliteral) + 1);
+    ASSERT_TRUE(wcseq(wstr, L"abcdex"));
 
     cstring_resize(wstr, 4, L'x');
     ASSERT_EQ(cstring_size(wstr), 4U);
@@ -593,7 +612,8 @@ UTEST(test, cstring_resize) {
 
     cstring_string_type(char) nullstr = NULL;
     cstring_resize(nullstr, 10, 'x');
-    ASSERT_EQ(nullstr, NULL);
+    ASSERT_STREQ(nullstr, "xxxxxxxxxx");
+    cstring_free(nullstr);
 
     cstring_init(zerolenstr, char);
     cstring_resize(zerolenstr, 10, 'x');
@@ -641,6 +661,23 @@ UTEST(test, cstring_swap) {
 
     cstring_free(wstr2);
     cstring_free(wstr1);
+
+    /* -- special cases -- */
+
+    ASSERT_EQ(str1, NULL);
+    ASSERT_EQ(str2, NULL);
+    cstring_swap(str1, str2);
+    ASSERT_EQ(str1, NULL);
+    ASSERT_EQ(str2, NULL);
+
+    cstring_assign(str1, literal, strlen_of(literal));
+    cstring_swap(str1, str2);
+    ASSERT_EQ(str1, NULL);
+    ASSERT_STREQ(str2, literal);
+    cstring_swap(str1, str2);
+    ASSERT_STREQ(str1, literal);
+    ASSERT_EQ(str2, NULL);
+    cstring_free(str1);
 }
 
 UTEST(test, cstring_substring) {
@@ -681,8 +718,21 @@ UTEST(test, cstring_substring) {
 
     cstring_substring(zerolenstr, 0, 0, substr);
     ASSERT_STREQ(substr, "");
-    cstring_free(substr);
     cstring_free(zerolenstr);
+
+    cstring_assign(str, literal, strlen_of(literal));
+    cstring_assign(substr, literal, strlen_of(literal));
+    cstring_substring(str, 1, 1000, substr);
+    ASSERT_EQ(cstring_size(substr), 4U);
+    ASSERT_STREQ(substr, "bcde");
+
+    cstring_assign(substr, "a", 1);
+    cstring_substring(str, 1, 1000, substr);
+    ASSERT_EQ(cstring_size(substr), 4U);
+    ASSERT_STREQ(substr, "bcde");
+
+    cstring_free(substr);
+    cstring_free(str);
 }
 
 UTEST_MAIN()
