@@ -1,12 +1,12 @@
-#ifndef HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_0_1
-#define HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_0_1
+#ifndef HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_0
+#define HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_0
 /**
  * @copyright Copyright (c) 2025 Steffen Illhardt,
  *            Licensed under the MIT license
  *            ( https://opensource.org/license/mit/ ).
  * @brief     cstring - Heap implemented using C library allocation functions.
  * @file      cstring.h
- * @version   0.1
+ * @version   1.0
  * @details
  *   The c-string library is based on the c-vector library,
  *   Copyright (c) 2015 Evan Teran,
@@ -103,6 +103,9 @@
             cstring_clib_memcpy((str), (ptr), (count) * sizeof(*(ptr))); \
             cstring_set_ttl_siz_((str), (count) + 1);                    \
             (str)[count] = 0;                                            \
+        } else {                                                         \
+            cstring_set_ttl_siz_((str), 1);                              \
+            (str)[0] = 0;                                                \
         }                                                                \
     } while (0)
 
@@ -248,6 +251,33 @@
             const size_t cs_sz___ = cstring_ttl_siz_(str); \
             cstring_grow_(str, cs_sz___);                  \
         }                                                  \
+    } while (0)
+
+/**
+ * @brief cstring_unsafe_set_size - Set the size property to the specified
+ *        value and add the string terminator accordingly.
+ * @details Providing a cstring with sufficiently large capacity as buffer to
+ *          external API is supported. However, the third party API cannot
+ *          update the header data of a cstring. This function enables the user
+ *          to manually update the size property in order to keep it usable in
+ *          the cstring API.
+ * @note This function does not examine the string data to evaluate the
+ *       credibility of the specified size. Furthermore, this function does not
+ *       force the capacity of the cstring to grow. If the required size exceeds
+ *       the current capacity, the function sets the size to meet the capacity.
+ *       Consider the memory being corrupted by the API that updated the string
+ *       data in this case.
+ * @param str  - The cstring.
+ * @param size - The size to be applied.
+ * @return void
+ */
+#define cstring_unsafe_set_size(str, size)                                                                              \
+    do {                                                                                                                \
+        if (str) {                                                                                                      \
+            const size_t cs_new_sz__ = cstring_capacity(str) < (size_t)(size) ? cstring_capacity(str) : (size_t)(size); \
+            cstring_set_ttl_siz_((str), cs_new_sz__ + 1);                                                               \
+            (str)[cs_new_sz__] = 0;                                                                                     \
+        }                                                                                                               \
     } while (0)
 
 /* ----------------- */
@@ -440,6 +470,114 @@
         void *cs_swap__ = (void *)str; \
         str             = other;       \
         other           = cs_swap__;   \
+    } while (0)
+
+/**
+ * @brief cstring_trim - Remove contiguous occurrences of the specified
+ *        character from the begin and/or the end of a cstring.
+ * @param str   - The cstring.
+ * @param value - The character to be removed.
+ * @param mode  - Flags specifying where the characters are removed. <br>
+ *                  1 to remove preceding characters <br>
+ *                  2 to remove trailing characters
+ * @return void
+ */
+#define cstring_trim(str, value, mode)                           \
+    do {                                                         \
+        size_t cs_end_i__ = cstring_size(str);                   \
+        if (cs_end_i__) {                                        \
+            size_t cs_beg_i__ = 0;                               \
+            if ((mode) & 2) {                                    \
+                while (cs_end_i__ > cs_beg_i__) {                \
+                    if ((str)[--cs_end_i__] != (value)) {        \
+                        ++cs_end_i__;                            \
+                        break;                                   \
+                    }                                            \
+                }                                                \
+            }                                                    \
+            if ((mode) & 1) {                                    \
+                while (cs_beg_i__ < cs_end_i__) {                \
+                    if ((str)[cs_beg_i__] != (value)) {          \
+                        break;                                   \
+                    }                                            \
+                    ++cs_beg_i__;                                \
+                }                                                \
+            }                                                    \
+            const size_t cs_new_len__ = cs_end_i__ - cs_beg_i__; \
+            if (cs_new_len__ && cs_beg_i__) {                    \
+                cstring_clib_memmove(                            \
+                    (str),                                       \
+                    (str) + cs_beg_i__,                          \
+                    sizeof(*(str)) * cs_new_len__);              \
+            }                                                    \
+            cstring_set_ttl_siz_((str), cs_new_len__ + 1);       \
+            (str)[cs_new_len__] = 0;                             \
+        }                                                        \
+    } while (0)
+
+/**
+ * @brief cstring_fix - Update the cstring to a fixed length by either padding
+ *        or shortening.
+ * @param str    - The cstring.
+ * @param length - New length of the cstring.
+ * @param value  - Character used for the padding.
+ * @param mode   - Flags specifying where the cstring is to be padded or
+ *                 shortened. <br>
+ *                   1 at the begin of the cstring <br>
+ *                   2 at the end of the cstring <br>
+ *                 Their combination (1|2) leads to a centered alignment.
+ * @return void
+ */
+#define cstring_fix(str, length, value, mode)                                                                               \
+    do {                                                                                                                    \
+        if ((str) && (long long)(length) >= 0) {                                                                            \
+            long long cs_diff__ = (long long)((unsigned long long)(length) - (cstring_size(str)));                          \
+            if (cs_diff__) {                                                                                                \
+                const long long head_len__ = ((mode) & 1 && (mode) & 2) ? cs_diff__ / 2 : (((mode) & 1) ? cs_diff__ : 0LL); \
+                if (cs_diff__ < 0) {                                                                                        \
+                    cstring_clib_memmove((str), (str) - (head_len__), (length) * sizeof(*(str)));                           \
+                } else {                                                                                                    \
+                    if ((size_t)(length) + 1 > cstring_ttl_cap_(str)) {                                                     \
+                        cstring_grow_((str), (length) + 1);                                                                 \
+                    }                                                                                                       \
+                    if (((mode) & 1) && head_len__) {                                                                       \
+                        long long n__;                                                                                      \
+                        cstring_clib_memmove((str) + head_len__, (str), cstring_size(str) * sizeof(*(str)));                \
+                        for (n__ = 0; n__ < head_len__; ++n__) {                                                            \
+                            (str)[n__] = (value);                                                                           \
+                        }                                                                                                   \
+                    }                                                                                                       \
+                    if ((mode) & 2) {                                                                                       \
+                        long long n__, e__;                                                                                 \
+                        for (n__ = head_len__ + cstring_size(str), e__ = (long long)(length); n__ < e__; ++n__) {           \
+                            (str)[n__] = (value);                                                                           \
+                        }                                                                                                   \
+                    }                                                                                                       \
+                }                                                                                                           \
+                cstring_set_ttl_siz_((str), (length) + 1);                                                                  \
+                (str)[length] = L'\0';                                                                                      \
+            }                                                                                                               \
+        }                                                                                                                   \
+    } while (0)
+
+/**
+ * @brief cstring_reverse - Reverse the character order in the cstring.
+ * @param str - The cstring.
+ * @return void
+ */
+#define cstring_reverse(str)                                 \
+    do {                                                     \
+        const size_t cs_tmp_i__ = cstring_size(str);         \
+        if (cs_tmp_i__) {                                    \
+            size_t cs_end_i___ = cs_tmp_i__;                 \
+            size_t cs_beg_i___ = 0;                          \
+            while (cs_end_i___ > cs_beg_i___) {              \
+                (str)[cs_tmp_i__]    = (str)[--cs_end_i___]; \
+                (str)[cs_end_i___]   = (str)[cs_beg_i___];   \
+                (str)[cs_beg_i___++] = (str)[cs_tmp_i__];    \
+            }                                                \
+            (str)[cs_tmp_i__] = 0;                           \
+        }                                                    \
     } while (0)
 
 /* ------------------ */

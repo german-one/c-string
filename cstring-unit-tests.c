@@ -272,6 +272,57 @@ UTEST(test, cstring_shrink_to_fit) {
     ASSERT_EQ(nullstr, NULL);
 }
 
+static size_t unsafe_buffer_update(char *buffer, size_t buffer_size) {
+    static const char data[] = "1234567890";
+    const size_t to_copy     = (sizeof(data) - 1) < buffer_size ? (sizeof(data) - 1) : buffer_size;
+    memcpy(buffer, data, to_copy);
+    return to_copy;
+}
+
+static size_t unsafe_wbuffer_update(wchar_t *wbuffer, size_t wbuffer_size) {
+    static const wchar_t data[] = L"1234567890";
+    const size_t to_copy        = (sizeof(data) / sizeof(wchar_t) - 1) < wbuffer_size ? (sizeof(data) / sizeof(wchar_t) - 1) : wbuffer_size;
+    memcpy(wbuffer, data, to_copy * sizeof(wchar_t));
+    return to_copy;
+}
+
+UTEST(test, cstring_unsafe_set_size) {
+    size_t len;
+    cstring_string_type(char) str = NULL;
+
+    cstring_reserve(str, 5);
+    len = unsafe_buffer_update(str, cstring_capacity(str));
+    cstring_unsafe_set_size(str, len);
+    ASSERT_EQ(cstring_size(str), 5U);
+    ASSERT_STREQ(str, "12345");
+
+    cstring_reserve(str, 30);
+    len = unsafe_buffer_update(str, cstring_capacity(str));
+    cstring_unsafe_set_size(str, len);
+    ASSERT_EQ(cstring_size(str), 10U);
+    ASSERT_STREQ(str, "1234567890");
+
+    cstring_free(str);
+
+    /* -- wide string -- */
+
+    cstring_string_type(wchar_t) wstr = NULL;
+
+    cstring_reserve(wstr, 5);
+    len = unsafe_wbuffer_update(wstr, cstring_capacity(wstr));
+    cstring_unsafe_set_size(wstr, len);
+    ASSERT_EQ(cstring_size(wstr), 5U);
+    ASSERT_TRUE(wcseq(wstr, L"12345"));
+
+    cstring_reserve(wstr, 30);
+    len = unsafe_wbuffer_update(wstr, cstring_capacity(wstr));
+    cstring_unsafe_set_size(wstr, len);
+    ASSERT_EQ(cstring_size(wstr), 10U);
+    ASSERT_TRUE(wcseq(wstr, L"1234567890"));
+
+    cstring_free(wstr);
+}
+
 UTEST(test, cstring_insert) {
     static const char lit1[]      = "0145";
     static const char lit2[]      = "23";
@@ -678,6 +729,248 @@ UTEST(test, cstring_swap) {
     ASSERT_STREQ(str1, literal);
     ASSERT_EQ(str2, NULL);
     cstring_free(str1);
+}
+
+UTEST(test, cstring_trim) {
+    cstring_string_type(char) str = NULL;
+    cstring_assign(str, "  ab  ", strlen_of("  ab  "));
+    cstring_trim(str, ' ', 3);
+    ASSERT_EQ(cstring_size(str), 2U);
+    ASSERT_STREQ(str, "ab");
+
+    cstring_assign(str, "ab  ", strlen_of("ab  "));
+    cstring_trim(str, ' ', 1);
+    ASSERT_EQ(cstring_size(str), 4U);
+    ASSERT_STREQ(str, "ab  ");
+    cstring_trim(str, ' ', 3);
+    ASSERT_EQ(cstring_size(str), 2U);
+    ASSERT_STREQ(str, "ab");
+
+    cstring_assign(str, "  ab", strlen_of("  ab"));
+    cstring_trim(str, ' ', 2);
+    ASSERT_EQ(cstring_size(str), 4U);
+    ASSERT_STREQ(str, "  ab");
+    cstring_trim(str, ' ', 3);
+    ASSERT_EQ(cstring_size(str), 2U);
+    ASSERT_STREQ(str, "ab");
+
+    cstring_assign(str, "  ", strlen_of("  "));
+    cstring_trim(str, ' ', 1);
+    ASSERT_EQ(cstring_size(str), 0U);
+    ASSERT_STREQ(str, "");
+    cstring_assign(str, "  ", strlen_of("  "));
+    cstring_trim(str, ' ', 2);
+    ASSERT_EQ(cstring_size(str), 0U);
+    ASSERT_STREQ(str, "");
+    cstring_assign(str, "  ", strlen_of("  "));
+    cstring_trim(str, ' ', 3);
+    ASSERT_EQ(cstring_size(str), 0U);
+    ASSERT_STREQ(str, "");
+
+    cstring_assign(str, "ab", strlen_of("ab"));
+    cstring_trim(str, ' ', 3);
+    ASSERT_EQ(cstring_size(str), 2U);
+    ASSERT_STREQ(str, "ab");
+    cstring_free(str);
+
+    /* -- wide string -- */
+
+    cstring_string_type(wchar_t) wstr = NULL;
+    cstring_assign(wstr, L"  ab  ", strlen_of(L"  ab  "));
+    cstring_trim(wstr, L' ', 3);
+    ASSERT_EQ(cstring_size(wstr), 2U);
+    ASSERT_TRUE(wcseq(wstr, L"ab"));
+
+    cstring_assign(wstr, L"ab  ", strlen_of(L"ab  "));
+    cstring_trim(wstr, L' ', 1);
+    ASSERT_EQ(cstring_size(wstr), 4U);
+    ASSERT_TRUE(wcseq(wstr, L"ab  "));
+    cstring_trim(wstr, L' ', 3);
+    ASSERT_EQ(cstring_size(wstr), 2U);
+    ASSERT_TRUE(wcseq(wstr, L"ab"));
+
+    cstring_assign(wstr, L"  ab", strlen_of(L"  ab"));
+    cstring_trim(wstr, L' ', 2);
+    ASSERT_EQ(cstring_size(wstr), 4U);
+    ASSERT_TRUE(wcseq(wstr, L"  ab"));
+    cstring_trim(wstr, L' ', 3);
+    ASSERT_EQ(cstring_size(wstr), 2U);
+    ASSERT_TRUE(wcseq(wstr, L"ab"));
+
+    cstring_assign(wstr, L"  ", strlen_of(L"  "));
+    cstring_trim(wstr, L' ', 1);
+    ASSERT_EQ(cstring_size(wstr), 0U);
+    ASSERT_TRUE(wcseq(wstr, L""));
+    cstring_assign(wstr, L"  ", strlen_of(L"  "));
+    cstring_trim(wstr, L' ', 2);
+    ASSERT_EQ(cstring_size(wstr), 0U);
+    ASSERT_TRUE(wcseq(wstr, L""));
+    cstring_assign(wstr, L"  ", strlen_of(L"  "));
+    cstring_trim(wstr, L' ', 3);
+    ASSERT_EQ(cstring_size(wstr), 0U);
+    ASSERT_TRUE(wcseq(wstr, L""));
+
+    cstring_assign(wstr, L"ab", strlen_of(L"ab"));
+    cstring_trim(wstr, L' ', 3);
+    ASSERT_EQ(cstring_size(wstr), 2U);
+    ASSERT_TRUE(wcseq(wstr, L"ab"));
+    cstring_free(wstr);
+
+    /* -- special cases -- */
+
+    cstring_string_type(char) nullstr = NULL;
+    cstring_trim(nullstr, ' ', 3);
+    ASSERT_EQ(cstring_size(nullstr), 0U);
+    ASSERT_EQ(nullstr, NULL);
+}
+
+UTEST(test, cstring_fix) {
+    cstring_string_type(char) str = NULL;
+    cstring_assign(str, "abc", 3);
+    cstring_fix(str, 5, ' ', 1);
+    ASSERT_EQ(cstring_size(str), 5U);
+    ASSERT_STREQ(str, "  abc");
+
+    cstring_assign(str, "abc", 3);
+    cstring_fix(str, 5, ' ', 2);
+    ASSERT_EQ(cstring_size(str), 5U);
+    ASSERT_STREQ(str, "abc  ");
+
+    cstring_assign(str, "abc", 3);
+    cstring_fix(str, 5, ' ', 3);
+    ASSERT_EQ(cstring_size(str), 5U);
+    ASSERT_STREQ(str, " abc ");
+
+    cstring_assign(str, "abc", 3);
+    cstring_fix(str, 6, ' ', 3);
+    ASSERT_EQ(cstring_size(str), 6U);
+    ASSERT_STREQ(str, " abc  ");
+
+    cstring_assign(str, "abc", 3);
+    cstring_fix(str, 1, ' ', 1);
+    ASSERT_EQ(cstring_size(str), 1U);
+    ASSERT_STREQ(str, "c");
+
+    cstring_assign(str, "abc", 3);
+    cstring_fix(str, 1, ' ', 2);
+    ASSERT_EQ(cstring_size(str), 1U);
+    ASSERT_STREQ(str, "a");
+
+    cstring_assign(str, "abc", 3);
+    cstring_fix(str, 1, ' ', 3);
+    ASSERT_EQ(cstring_size(str), 1U);
+    ASSERT_STREQ(str, "b");
+
+    cstring_free(str);
+
+    /* -- wide string -- */
+
+    cstring_string_type(wchar_t) wstr = NULL;
+    cstring_assign(wstr, L"abc", 3);
+    cstring_fix(wstr, 5, L' ', 1);
+    ASSERT_EQ(cstring_size(wstr), 5U);
+    ASSERT_TRUE(wcseq(wstr, L"  abc"));
+
+    cstring_assign(wstr, L"abc", 3);
+    cstring_fix(wstr, 5, L' ', 2);
+    ASSERT_EQ(cstring_size(wstr), 5U);
+    ASSERT_TRUE(wcseq(wstr, L"abc  "));
+
+    cstring_assign(wstr, L"abc", 3);
+    cstring_fix(wstr, 5, L' ', 3);
+    ASSERT_EQ(cstring_size(wstr), 5U);
+    ASSERT_TRUE(wcseq(wstr, L" abc "));
+
+    cstring_assign(wstr, L"abc", 3);
+    cstring_fix(wstr, 6, L' ', 3);
+    ASSERT_EQ(cstring_size(wstr), 6U);
+    ASSERT_TRUE(wcseq(wstr, L" abc  "));
+
+    cstring_assign(wstr, L"abc", 3);
+    cstring_fix(wstr, 1, L' ', 1);
+    ASSERT_EQ(cstring_size(wstr), 1U);
+    ASSERT_TRUE(wcseq(wstr, L"c"));
+
+    cstring_assign(wstr, L"abc", 3);
+    cstring_fix(wstr, 1, L' ', 2);
+    ASSERT_EQ(cstring_size(wstr), 1U);
+    ASSERT_TRUE(wcseq(wstr, L"a"));
+
+    cstring_assign(wstr, L"abc", 3);
+    cstring_fix(wstr, 1, L' ', 3);
+    ASSERT_EQ(cstring_size(wstr), 1U);
+    ASSERT_TRUE(wcseq(wstr, L"b"));
+
+    cstring_free(wstr);
+
+    /* -- special cases -- */
+
+    cstring_assign(str, "", 0);
+    cstring_fix(str, 5, ' ', 3);
+    ASSERT_EQ(cstring_size(str), 5U);
+    ASSERT_STREQ(str, "     ");
+
+    cstring_assign(str, "x", 1);
+    cstring_fix(str, 0, ' ', 3);
+    ASSERT_EQ(cstring_size(str), 0U);
+    ASSERT_STREQ(str, "");
+    cstring_free(str);
+
+    cstring_string_type(char) nullstr = NULL;
+    cstring_fix(nullstr, 5, ' ', 3);
+    ASSERT_EQ(cstring_size(nullstr), 0U);
+    ASSERT_EQ(nullstr, NULL);
+}
+
+UTEST(test, cstring_reverse) {
+    cstring_string_type(char) str = NULL;
+    cstring_assign(str, "abc", 3);
+    cstring_reverse(str);
+    ASSERT_EQ(cstring_size(str), 3U);
+    ASSERT_STREQ(str, "cba");
+
+    cstring_assign(str, "ab", 2);
+    cstring_reverse(str);
+    ASSERT_EQ(cstring_size(str), 2U);
+    ASSERT_STREQ(str, "ba");
+
+    cstring_assign(str, "a", 1);
+    cstring_reverse(str);
+    ASSERT_EQ(cstring_size(str), 1U);
+    ASSERT_STREQ(str, "a");
+    cstring_free(str);
+
+    /* -- wide string -- */
+
+    cstring_string_type(wchar_t) wstr = NULL;
+    cstring_assign(wstr, L"abc", 3);
+    cstring_reverse(wstr);
+    ASSERT_EQ(cstring_size(wstr), 3U);
+    ASSERT_TRUE(wcseq(wstr, L"cba"));
+
+    cstring_assign(wstr, L"ab", 2);
+    cstring_reverse(wstr);
+    ASSERT_EQ(cstring_size(wstr), 2U);
+    ASSERT_TRUE(wcseq(wstr, L"ba"));
+
+    cstring_assign(wstr, L"a", 1);
+    cstring_reverse(wstr);
+    ASSERT_EQ(cstring_size(wstr), 1U);
+    ASSERT_TRUE(wcseq(wstr, L"a"));
+    cstring_free(wstr);
+
+    /* -- special cases -- */
+
+    cstring_assign(str, "", 0);
+    cstring_reverse(str);
+    ASSERT_EQ(cstring_size(str), 0U);
+    ASSERT_STREQ(str, "");
+    cstring_free(str);
+
+    cstring_string_type(char) nullstr = NULL;
+    cstring_reverse(nullstr);
+    ASSERT_EQ(cstring_size(nullstr), 0U);
+    ASSERT_EQ(nullstr, NULL);
 }
 
 UTEST(test, cstring_substring) {

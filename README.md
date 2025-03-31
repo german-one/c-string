@@ -1,6 +1,6 @@
 This is a type-safe, header-only implementation of a `std::basic_string`-like string in plain C code.  
 It can be considered an offshoot of the [c-vector](https://github.com/eteran/c-vector) library and is intended to be binary compatible with it. Many sequences of the `c-string` library essentially correspond to the `c-vector` library code. All credits go to [eteran](https://github.com/eteran) and contributors.  
-While the `c-vector` library implements macros to emulate methods of a `std::vector`, the `c-string` library is specialized for null-terminated strings of characters. Its macros emulate the subset of `std::basic_string` methods that can't be trivially mimicked using functions of the C string library.  
+While the `c-vector` library implements macros to emulate methods of a `std::vector`, the `c-string` library is specialized for null-terminated strings of characters. Its macros emulate the subset of `std::basic_string` methods that can't be trivially mimicked using functions of the C string library. A few additional features are implemented that don't have an equivalent for a `std::basic_string`.  
   
 Just like the `cvector`, a `cstring` is prefixed with metadata, in the tradition of a length-prefixed string implementation.  
 The members of the `cstring` metadata are found at the same offset as those of a `cvector`. They count all characters (incl. the terminating null) which makes a `cstring` _interchangeable_ with a `cvector` of the same set of consecutive characters. Unlike the `cvector` macros (and as is usual for strings) the `cstring` macros, which return size and capacity, do not count the string terminator.  
@@ -74,6 +74,7 @@ int main(void) {
 | [`str.reserve(n)`](https://en.cppreference.com/w/cpp/string/basic_string/reserve) | `cstring_reserve(str, n)` |
 | [`str.capacity()`](https://en.cppreference.com/w/cpp/string/basic_string/capacity) | `cstring_capacity(str)` |
 | [`str.shrink_to_fit()`](https://en.cppreference.com/w/cpp/string/basic_string/shrink_to_fit) | `cstring_shrink_to_fit(str)` |
+| N/A | `cstring_unsafe_set_size(str, size)` [^4] |
 | [`str.clear()`](https://en.cppreference.com/w/cpp/string/basic_string/clear) | `cstring_clear(str)` |
 | [`str.insert(index, s, count)`](https://en.cppreference.com/w/cpp/string/basic_string/insert) | `cstring_insert(str, index, s, count)` |
 | [`str.erase(index, count)`](https://en.cppreference.com/w/cpp/string/basic_string/erase) | `cstring_erase(str, index, count)` |
@@ -81,12 +82,19 @@ int main(void) {
 | [`str.pop_back()`](https://en.cppreference.com/w/cpp/string/basic_string/pop_back) | `cstring_pop_back(str)` |
 | [`str.append(s, count)`](https://en.cppreference.com/w/cpp/string/basic_string/append) | `cstring_append(str, s, count)` |
 | [`str.replace(pos, count, s, count2)`](https://en.cppreference.com/w/cpp/string/basic_string/replace) | `cstring_replace(str, pos, count, s, count2)` |
-| [`from.copy(to, npos, 0)`](https://en.cppreference.com/w/cpp/string/basic_string/copy) | `cstring_copy(from, to)` [^4] |
+| [`from.copy(to, npos, 0)`](https://en.cppreference.com/w/cpp/string/basic_string/copy) | `cstring_copy(from, to)` [^5] |
 | [`str.resize(count, ch)`](https://en.cppreference.com/w/cpp/string/basic_string/resize) | `cstring_resize(str, count, ch)` |
 | [`str.swap(other)`](https://en.cppreference.com/w/cpp/string/basic_string/swap) | `cstring_swap(str, other)` |
+| N/A | `cstring_trim(str, value, mode)` [^6] |
+| N/A | `cstring_fix(str, length, value, mode)` [^7] |
+| N/A | `cstring_reverse(str)` [^8] |
 | [`to = from.substring(pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/substring) | `cstring_substring(from, pos, count, to)` |
 
 [^1]: Initializes a NULL string. Nothing similar for `std::basic_string`.  
 [^2]: Declares a static cstring literal of `const type`. This is comparable with a C++20 `constexpr std::basic_string`.  
 [^3]: Allocates and initializes a zero-length string.  
-[^4]: This creates a duplicate of the string. For copying a substring see `cstring_substring()`.  
+[^4]: Manually updates the size property after an update of the string buffer in a third party API.  
+[^5]: This creates a duplicate of the string. For copying a substring see `cstring_substring()`.  
+[^6]: Removes contiguous occurrences of the specified character from the begin and/or the end of a cstring.  
+[^7]: Updates the cstring to a fixed length by either padding or shortening.  
+[^8]: Reverses the character order in the cstring.  
