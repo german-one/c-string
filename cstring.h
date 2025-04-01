@@ -99,7 +99,8 @@
         if (!(str)) {                                                    \
             cstring_grow_((str), (count) + 1);                           \
         }                                                                \
-        if ((ptr) != NULL && (count)) {                                  \
+        const void *const tmp_ptr__ = (const void *)(ptr);               \
+        if (tmp_ptr__ && (count)) {                                      \
             cstring_clib_memcpy((str), (ptr), (count) * sizeof(*(ptr))); \
             cstring_set_ttl_siz_((str), (count) + 1);                    \
             (str)[count] = 0;                                            \
@@ -478,16 +479,19 @@
  * @param str   - The cstring.
  * @param value - The character to be removed.
  * @param mode  - Flags specifying where the characters are removed. <br>
- *                  1 to remove preceding characters <br>
+ *                  1 to remove leading characters <br>
  *                  2 to remove trailing characters
+ *                Their combination (1|2) leads to trim at both string bounds.
  * @return void
  */
 #define cstring_trim(str, value, mode)                           \
     do {                                                         \
         size_t cs_end_i__ = cstring_size(str);                   \
         if (cs_end_i__) {                                        \
-            size_t cs_beg_i__ = 0;                               \
-            if ((mode) & 2) {                                    \
+            const int mode_head__ = (int)((mode) & 1);           \
+            const int mode_tail__ = (int)((mode) & 2);           \
+            size_t cs_beg_i__     = 0;                           \
+            if (mode_tail__) {                                   \
                 while (cs_end_i__ > cs_beg_i__) {                \
                     if ((str)[--cs_end_i__] != (value)) {        \
                         ++cs_end_i__;                            \
@@ -495,7 +499,7 @@
                     }                                            \
                 }                                                \
             }                                                    \
-            if ((mode) & 1) {                                    \
+            if (mode_head__) {                                   \
                 while (cs_beg_i__ < cs_end_i__) {                \
                     if ((str)[cs_beg_i__] != (value)) {          \
                         break;                                   \
@@ -528,36 +532,38 @@
  *                 Their combination (1|2) leads to a centered alignment.
  * @return void
  */
-#define cstring_fix(str, length, value, mode)                                                                               \
-    do {                                                                                                                    \
-        if ((str) && (long long)(length) >= 0) {                                                                            \
-            long long cs_diff__ = (long long)((unsigned long long)(length) - (cstring_size(str)));                          \
-            if (cs_diff__) {                                                                                                \
-                const long long head_len__ = ((mode) & 1 && (mode) & 2) ? cs_diff__ / 2 : (((mode) & 1) ? cs_diff__ : 0LL); \
-                if (cs_diff__ < 0) {                                                                                        \
-                    cstring_clib_memmove((str), (str) - (head_len__), (length) * sizeof(*(str)));                           \
-                } else {                                                                                                    \
-                    if ((size_t)(length) + 1 > cstring_ttl_cap_(str)) {                                                     \
-                        cstring_grow_((str), (length) + 1);                                                                 \
-                    }                                                                                                       \
-                    if (((mode) & 1) && head_len__) {                                                                       \
-                        long long n__;                                                                                      \
-                        cstring_clib_memmove((str) + head_len__, (str), cstring_size(str) * sizeof(*(str)));                \
-                        for (n__ = 0; n__ < head_len__; ++n__) {                                                            \
-                            (str)[n__] = (value);                                                                           \
-                        }                                                                                                   \
-                    }                                                                                                       \
-                    if ((mode) & 2) {                                                                                       \
-                        long long n__, e__;                                                                                 \
-                        for (n__ = head_len__ + cstring_size(str), e__ = (long long)(length); n__ < e__; ++n__) {           \
-                            (str)[n__] = (value);                                                                           \
-                        }                                                                                                   \
-                    }                                                                                                       \
-                }                                                                                                           \
-                cstring_set_ttl_siz_((str), (length) + 1);                                                                  \
-                (str)[length] = L'\0';                                                                                      \
-            }                                                                                                               \
-        }                                                                                                                   \
+#define cstring_fix(str, length, value, mode)                                                                                   \
+    do {                                                                                                                        \
+        if ((str) && (long long)(length) >= 0) {                                                                                \
+            long long cs_diff__ = (long long)((unsigned long long)(length) - (cstring_size(str)));                              \
+            if (cs_diff__) {                                                                                                    \
+                const int mode_head___     = (int)((mode) & 1);                                                                 \
+                const int mode_tail___     = (int)((mode) & 2);                                                                 \
+                const long long head_len__ = (mode_head___ && mode_tail___) ? cs_diff__ / 2 : (mode_head___ ? cs_diff__ : 0LL); \
+                if (cs_diff__ < 0) {                                                                                            \
+                    cstring_clib_memmove((str), (str) - (head_len__), (length) * sizeof(*(str)));                               \
+                } else {                                                                                                        \
+                    if ((size_t)(length) + 1 > cstring_ttl_cap_(str)) {                                                         \
+                        cstring_grow_((str), (length) + 1);                                                                     \
+                    }                                                                                                           \
+                    if (mode_head___ && head_len__) {                                                                           \
+                        long long n__;                                                                                          \
+                        cstring_clib_memmove((str) + head_len__, (str), cstring_size(str) * sizeof(*(str)));                    \
+                        for (n__ = 0; n__ < head_len__; ++n__) {                                                                \
+                            (str)[n__] = (value);                                                                               \
+                        }                                                                                                       \
+                    }                                                                                                           \
+                    if (mode_tail___) {                                                                                         \
+                        long long n__, e__;                                                                                     \
+                        for (n__ = head_len__ + cstring_size(str), e__ = (long long)(length); n__ < e__; ++n__) {               \
+                            (str)[n__] = (value);                                                                               \
+                        }                                                                                                       \
+                    }                                                                                                           \
+                }                                                                                                               \
+                cstring_set_ttl_siz_((str), (length) + 1);                                                                      \
+                (str)[length] = L'\0';                                                                                          \
+            }                                                                                                                   \
+        }                                                                                                                       \
     } while (0)
 
 /**
