@@ -71,6 +71,7 @@ int main(void) {
 | [`str.end()`](https://en.cppreference.com/w/cpp/string/basic_string/end) | `cstring_end(str)` |
 | [`str.empty()`](https://en.cppreference.com/w/cpp/string/basic_string/empty) | `cstring_empty(str)` |
 | [`str.size()`, `str.length()`](https://en.cppreference.com/w/cpp/string/basic_string/size) | `cstring_size(str)`, `cstring_length(str)` |
+| [`std::basic_string<type>::max_size`](https://en.cppreference.com/w/cpp/string/basic_string/max_size) | `cstring_max_size(type)` |
 | [`str.reserve(n)`](https://en.cppreference.com/w/cpp/string/basic_string/reserve) | `cstring_reserve(str, n)` |
 | [`str.capacity()`](https://en.cppreference.com/w/cpp/string/basic_string/capacity) | `cstring_capacity(str)` |
 | [`str.shrink_to_fit()`](https://en.cppreference.com/w/cpp/string/basic_string/shrink_to_fit) | `cstring_shrink_to_fit(str)` |

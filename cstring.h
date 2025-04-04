@@ -74,12 +74,12 @@
  * @param type - The type of string to act on.
  * @return void
  */
-#define cstring_init(name, type)                                                   \
-    cstring_string_type(type) name = NULL;                                         \
-    do {                                                                           \
-        cstring_grow_((name), ((64 - sizeof(cstring_metadata_t)) / sizeof(type))); \
-        (name)[0] = 0;                                                             \
-        cstring_set_ttl_siz_((name), 1);                                           \
+#define cstring_init(name, type)                                                 \
+    cstring_string_type(type) name = NULL;                                       \
+    do {                                                                         \
+        cstring_grow_(name, ((64 - sizeof(cstring_metadata_t)) / sizeof(type))); \
+        (name)[0] = 0;                                                           \
+        cstring_set_ttl_siz_(name, 1);                                           \
     } while (0)
 
 /**
@@ -91,23 +91,23 @@
  * @param count - Number of consecutive characters to be used.
  * @return void
  */
-#define cstring_assign(str, ptr, count)                                  \
-    do {                                                                 \
-        const void *const tmp_ptr__ = (const void *)(ptr);               \
-        if ((str) && cstring_ttl_cap_(str) < (count) + 1) {              \
-            cstring_free(str);                                           \
-        }                                                                \
-        if (!(str)) {                                                    \
-            cstring_grow_((str), (count) + 1);                           \
-        }                                                                \
-        if (tmp_ptr__ && (count)) {                                      \
-            cstring_clib_memcpy((str), (ptr), (count) * sizeof(*(ptr))); \
-            cstring_set_ttl_siz_((str), (count) + 1);                    \
-            (str)[count] = 0;                                            \
-        } else {                                                         \
-            cstring_set_ttl_siz_((str), 1);                              \
-            (str)[0] = 0;                                                \
-        }                                                                \
+#define cstring_assign(str, ptr, count)                                          \
+    do {                                                                         \
+        const void *const tmp_ptr__ = (const void *)(ptr);                       \
+        if ((str) && cstring_ttl_cap_(str) < (size_t)(count) + 1) {              \
+            cstring_free(str);                                                   \
+        }                                                                        \
+        if (!(str)) {                                                            \
+            cstring_grow_((str), (size_t)(count) + 1);                           \
+        }                                                                        \
+        if (tmp_ptr__ && (count)) {                                              \
+            cstring_clib_memcpy((str), (ptr), (size_t)(count) * sizeof(*(ptr))); \
+            cstring_set_ttl_siz_((str), (size_t)(count) + 1);                    \
+            (str)[(size_t)(count)] = 0;                                          \
+        } else {                                                                 \
+            cstring_set_ttl_siz_((str), 1);                                      \
+            (str)[0] = 0;                                                        \
+        }                                                                        \
     } while (0)
 
 /**
@@ -135,7 +135,7 @@
  * @return A reference to the character at the specified position in the string.
  */
 #define cstring_at(str, pos) \
-    ((size_t)(pos) < cstring_size(str) ? (str) + (pos) : NULL)
+    ((size_t)(pos) < cstring_size(str) ? (str) + (size_t)(pos) : NULL)
 
 /**
  * @brief cstring_front - Return a reference to the first character in the
@@ -200,13 +200,24 @@
     (cstring_ttl_siz_(str) ? cstring_ttl_siz_(str) - 1 : (size_t)0)
 
 /**
- * @brief cstring_length - Gets the current length of the string.
+ * @brief cstring_length - Get the current length of the string.
  * @param str - The cstring. Can be a NULL string.
  * @return The length as a `size_t`, terminating null not counted. Zero if `str`
  *         is NULL.
  */
 #define cstring_length(str) \
     cstring_size(str)
+
+/**
+ * @brief cstring_max_size - Get the maximum number of elements a string of the
+ *        specified character type is able to hold.
+ * @note The returned value is technically possible. However, typically
+ *       allocations of such a big size will fail.
+ * @param type - The type of string to act on.
+ * @return The maximum number of elements the string is able to hold.
+ */
+#define cstring_max_size(type) \
+    (((((size_t)1) << ((sizeof(ptrdiff_t) < sizeof(size_t) ? sizeof(ptrdiff_t) : sizeof(size_t)) * CHAR_BIT - 1)) - 1 - sizeof(cstring_metadata_t)) / sizeof(type) - 1)
 
 /**
  * @brief cstring_reserve - Request that the string capacity be at least enough
@@ -220,16 +231,16 @@
  * @param n   - Minimum capacity for the string.
  * @return void
  */
-#define cstring_reserve(str, n)                            \
-    do {                                                   \
-        const int is_new__ = ((str) == NULL);              \
-        if (is_new__ || cstring_ttl_cap_(str) < (n) + 1) { \
-            cstring_grow_((str), (n) + 1);                 \
-        }                                                  \
-        if (is_new__) {                                    \
-            cstring_set_ttl_siz_((str), 1);                \
-            (str)[0] = 0;                                  \
-        }                                                  \
+#define cstring_reserve(str, n)                                    \
+    do {                                                           \
+        const int is_new__ = ((str) == NULL);                      \
+        if (is_new__ || cstring_ttl_cap_(str) < (size_t)(n) + 1) { \
+            cstring_grow_((str), (size_t)(n) + 1);                 \
+        }                                                          \
+        if (is_new__) {                                            \
+            cstring_set_ttl_siz_((str), 1);                        \
+            (str)[0] = 0;                                          \
+        }                                                          \
     } while (0)
 
 /**
@@ -305,23 +316,20 @@
  * @param count - Number of consecutive characters to be used.
  * @return void
  */
-#define cstring_insert(str, pos, ptr, count)                                     \
-    do {                                                                         \
-        if (str) {                                                               \
-            const size_t new_ttl_sz__ = cstring_ttl_siz_(str) + (count);         \
-            if (cstring_ttl_cap_(str) < new_ttl_sz__) {                          \
-                cstring_grow_((str), new_ttl_sz__);                              \
-            }                                                                    \
-            if ((pos) < cstring_size(str)) {                                     \
-                cstring_clib_memmove(                                            \
-                    (str) + (pos) + (count),                                     \
-                    (str) + (pos),                                               \
-                    sizeof(*(str)) * ((cstring_size(str)) - (pos)));             \
-            }                                                                    \
-            cstring_clib_memcpy((str) + (pos), (ptr), (count) * sizeof(*(ptr))); \
-            cstring_set_ttl_siz_((str), new_ttl_sz__);                           \
-            (str)[cstring_size(str)] = 0;                                        \
-        }                                                                        \
+#define cstring_insert(str, pos, ptr, count)                                                                                                                  \
+    do {                                                                                                                                                      \
+        if (str) {                                                                                                                                            \
+            const size_t new_ttl_sz__ = cstring_ttl_siz_(str) + (size_t)(count);                                                                              \
+            if (cstring_ttl_cap_(str) < new_ttl_sz__) {                                                                                                       \
+                cstring_grow_((str), new_ttl_sz__);                                                                                                           \
+            }                                                                                                                                                 \
+            if ((size_t)(pos) < cstring_size(str)) {                                                                                                          \
+                cstring_clib_memmove((str) + (size_t)(pos) + (size_t)(count), (str) + (size_t)(pos), sizeof(*(str)) * ((cstring_size(str)) - (size_t)(pos))); \
+            }                                                                                                                                                 \
+            cstring_clib_memcpy((str) + (size_t)(pos), (ptr), (size_t)(count) * sizeof(*(ptr)));                                                              \
+            cstring_set_ttl_siz_((str), new_ttl_sz__);                                                                                                        \
+            (str)[cstring_size(str)] = 0;                                                                                                                     \
+        }                                                                                                                                                     \
     } while (0)
 
 /**
@@ -332,16 +340,13 @@
  * @param n   - Number of consecutive characters to be erased.
  * @return void
  */
-#define cstring_erase(str, pos, n)                                                                                        \
-    do {                                                                                                                  \
-        if ((str) && (size_t)(pos) < cstring_size(str)) {                                                                 \
-            const size_t cs_count__ = (size_t)(pos) + (n) >= cstring_size(str) ? cstring_size(str) - (pos) : (size_t)(n); \
-            cstring_set_ttl_siz_((str), cstring_ttl_siz_(str) - cs_count__);                                              \
-            cstring_clib_memmove(                                                                                         \
-                (str) + (pos),                                                                                            \
-                (str) + (pos) + cs_count__,                                                                               \
-                sizeof(*(str)) * (cstring_ttl_siz_(str) - (pos)));                                                        \
-        }                                                                                                                 \
+#define cstring_erase(str, pos, n)                                                                                                                     \
+    do {                                                                                                                                               \
+        if ((str) && (size_t)(pos) < cstring_size(str)) {                                                                                              \
+            const size_t cs_count__ = (size_t)(pos) + (size_t)(n) >= cstring_size(str) ? cstring_size(str) - (size_t)(pos) : (size_t)(n);              \
+            cstring_set_ttl_siz_((str), cstring_ttl_siz_(str) - cs_count__);                                                                           \
+            cstring_clib_memmove((str) + (size_t)(pos), (str) + (size_t)(pos) + cs_count__, sizeof(*(str)) * (cstring_ttl_siz_(str) - (size_t)(pos))); \
+        }                                                                                                                                              \
     } while (0)
 
 /**
@@ -390,13 +395,13 @@
  * @param count - Number of consecutive characters to be used.
  * @return void
  */
-#define cstring_append(str, ptr, count)                               \
-    do {                                                              \
-        if (str) {                                                    \
-            cstring_insert((str), cstring_size(str), (ptr), (count)); \
-        } else {                                                      \
-            cstring_assign((str), (ptr), (count));                    \
-        }                                                             \
+#define cstring_append(str, ptr, count)                                       \
+    do {                                                                      \
+        if (str) {                                                            \
+            cstring_insert((str), cstring_size(str), (ptr), (size_t)(count)); \
+        } else {                                                              \
+            cstring_assign((str), (ptr), (size_t)(count));                    \
+        }                                                                     \
     } while (0)
 
 /**
@@ -409,10 +414,10 @@
  * @param count - Number of consecutive replacement characters to be used.
  * @return void
  */
-#define cstring_replace(str, pos, n, ptr, count)      \
-    do {                                              \
-        cstring_erase((str), (pos), (n));             \
-        cstring_insert((str), (pos), (ptr), (count)); \
+#define cstring_replace(str, pos, n, ptr, count)                      \
+    do {                                                              \
+        cstring_erase((str), (size_t)(pos), (size_t)(n));             \
+        cstring_insert((str), (size_t)(pos), (ptr), (size_t)(count)); \
     } while (0)
 
 /**
@@ -446,18 +451,18 @@
  * @param value - The value to initialize new characters with.
  * @return void
  */
-#define cstring_resize(str, count, value)                   \
-    do {                                                    \
-        const size_t cs_sz_count__ = (size_t)((count) + 1); \
-        size_t cs_sz__             = cstring_size(str);     \
-        if (cs_sz_count__ > cs_sz__ + 1) {                  \
-            cstring_grow_((str), cs_sz_count__);            \
-            do {                                            \
-                (str)[cs_sz__++] = (value);                 \
-            } while (cs_sz__ < cs_sz_count__);              \
-        }                                                   \
-        cstring_set_ttl_siz_((str), cs_sz_count__);         \
-        (str)[count] = 0;                                   \
+#define cstring_resize(str, count, value)                 \
+    do {                                                  \
+        const size_t cs_sz_count__ = (size_t)(count) + 1; \
+        size_t cs_sz__             = cstring_size(str);   \
+        if (cs_sz_count__ > cs_sz__ + 1) {                \
+            cstring_grow_((str), cs_sz_count__);          \
+            do {                                          \
+                (str)[cs_sz__++] = (value);               \
+            } while (cs_sz__ < cs_sz_count__);            \
+        }                                                 \
+        cstring_set_ttl_siz_((str), cs_sz_count__);       \
+        (str)[(size_t)(count)] = 0;                       \
     } while (0)
 
 /**
@@ -486,40 +491,37 @@
  *                the string.
  * @return void
  */
-#define cstring_trim(str, value, mode)                     \
-    do {                                                   \
-        size_t cs_end_i__ = cstring_size(str);             \
-        if (cs_end_i__) {                                  \
-            size_t cs_new_len__;                           \
-            const int mode_head__ = (int)((mode) & 1);     \
-            const int mode_tail__ = (int)((mode) & 2);     \
-            size_t cs_beg_i__     = 0;                     \
-            if (mode_tail__) {                             \
-                while (cs_end_i__ > cs_beg_i__) {          \
-                    if ((str)[--cs_end_i__] != (value)) {  \
-                        ++cs_end_i__;                      \
-                        break;                             \
-                    }                                      \
-                }                                          \
-            }                                              \
-            if (mode_head__) {                             \
-                while (cs_beg_i__ < cs_end_i__) {          \
-                    if ((str)[cs_beg_i__] != (value)) {    \
-                        break;                             \
-                    }                                      \
-                    ++cs_beg_i__;                          \
-                }                                          \
-            }                                              \
-            cs_new_len__ = cs_end_i__ - cs_beg_i__;        \
-            if (cs_new_len__ && cs_beg_i__) {              \
-                cstring_clib_memmove(                      \
-                    (str),                                 \
-                    (str) + cs_beg_i__,                    \
-                    sizeof(*(str)) * cs_new_len__);        \
-            }                                              \
-            cstring_set_ttl_siz_((str), cs_new_len__ + 1); \
-            (str)[cs_new_len__] = 0;                       \
-        }                                                  \
+#define cstring_trim(str, value, mode)                                                          \
+    do {                                                                                        \
+        size_t cs_end_i__ = cstring_size(str);                                                  \
+        if (cs_end_i__) {                                                                       \
+            size_t cs_new_len__;                                                                \
+            const int mode_head__ = (int)((mode) & 1);                                          \
+            const int mode_tail__ = (int)((mode) & 2);                                          \
+            size_t cs_beg_i__     = 0;                                                          \
+            if (mode_tail__) {                                                                  \
+                while (cs_end_i__ > cs_beg_i__) {                                               \
+                    if ((str)[--cs_end_i__] != (value)) {                                       \
+                        ++cs_end_i__;                                                           \
+                        break;                                                                  \
+                    }                                                                           \
+                }                                                                               \
+            }                                                                                   \
+            if (mode_head__) {                                                                  \
+                while (cs_beg_i__ < cs_end_i__) {                                               \
+                    if ((str)[cs_beg_i__] != (value)) {                                         \
+                        break;                                                                  \
+                    }                                                                           \
+                    ++cs_beg_i__;                                                               \
+                }                                                                               \
+            }                                                                                   \
+            cs_new_len__ = cs_end_i__ - cs_beg_i__;                                             \
+            if (cs_new_len__ && cs_beg_i__) {                                                   \
+                cstring_clib_memmove((str), (str) + cs_beg_i__, sizeof(*(str)) * cs_new_len__); \
+            }                                                                                   \
+            cstring_set_ttl_siz_((str), cs_new_len__ + 1);                                      \
+            (str)[cs_new_len__] = 0;                                                            \
+        }                                                                                       \
     } while (0)
 
 /**
@@ -544,10 +546,10 @@
                 const int mode_tail___     = (int)((mode) & 2);                                                                        \
                 const ptrdiff_t head_len__ = mode_head___ && mode_tail___ ? cs_diff__ / 2 : (mode_head___ ? cs_diff__ : (ptrdiff_t)0); \
                 if (cs_diff__ < 0) {                                                                                                   \
-                    cstring_clib_memmove((str), (str) - (head_len__), (length) * sizeof(*(str)));                                      \
+                    cstring_clib_memmove((str), (str) - (head_len__), (size_t)(length) * sizeof(*(str)));                              \
                 } else {                                                                                                               \
                     if ((size_t)(length) + 1 > cstring_ttl_cap_(str)) {                                                                \
-                        cstring_grow_((str), (length) + 1);                                                                            \
+                        cstring_grow_((str), (size_t)(length) + 1);                                                                    \
                     }                                                                                                                  \
                     if (mode_head___ && head_len__) {                                                                                  \
                         ptrdiff_t n__ = 0;                                                                                             \
@@ -564,8 +566,8 @@
                         }                                                                                                              \
                     }                                                                                                                  \
                 }                                                                                                                      \
-                cstring_set_ttl_siz_((str), (length) + 1);                                                                             \
-                (str)[length] = L'\0';                                                                                                 \
+                cstring_set_ttl_siz_((str), (size_t)(length) + 1);                                                                     \
+                (str)[(size_t)(length)] = L'\0';                                                                                       \
             }                                                                                                                          \
         }                                                                                                                              \
     } while (0)
@@ -578,7 +580,7 @@
 #define cstring_reverse(str)                                 \
     do {                                                     \
         const size_t cs_tmp_i__ = cstring_size(str);         \
-        if (cs_tmp_i__) {                                    \
+        if (cs_tmp_i__ > 1) {                                \
             size_t cs_end_i___ = cs_tmp_i__;                 \
             size_t cs_beg_i___ = 0;                          \
             while (cs_end_i___ > cs_beg_i___) {              \
@@ -602,20 +604,20 @@
  *               string.
  * @return void
  */
-#define cstring_substring(from, pos, n, to)                                                                                  \
-    do {                                                                                                                     \
-        if ((from) && cstring_ttl_siz_(from) > (size_t)(pos)) {                                                              \
-            const size_t cs_count___ = (size_t)(pos) + (n) >= cstring_size(from) ? cstring_size(from) - (pos) : (size_t)(n); \
-            if ((to) && cstring_ttl_cap_(to) < cs_count___ + 1) {                                                            \
-                cstring_free(to);                                                                                            \
-            }                                                                                                                \
-            if (!(to)) {                                                                                                     \
-                cstring_grow_((to), cs_count___ + 1);                                                                        \
-            }                                                                                                                \
-            cstring_clib_memcpy((to), (from) + (pos), cs_count___ * sizeof(*(from)));                                        \
-            cstring_set_ttl_siz_((to), cs_count___ + 1);                                                                     \
-            (to)[cs_count___] = 0;                                                                                           \
-        }                                                                                                                    \
+#define cstring_substring(from, pos, n, to)                                                                                                  \
+    do {                                                                                                                                     \
+        if ((from) && cstring_ttl_siz_(from) > (size_t)(pos)) {                                                                              \
+            const size_t cs_count___ = (size_t)(pos) + (size_t)(n) >= cstring_size(from) ? cstring_size(from) - (size_t)(pos) : (size_t)(n); \
+            if ((to) && cstring_ttl_cap_(to) < cs_count___ + 1) {                                                                            \
+                cstring_free(to);                                                                                                            \
+            }                                                                                                                                \
+            if (!(to)) {                                                                                                                     \
+                cstring_grow_((to), cs_count___ + 1);                                                                                        \
+            }                                                                                                                                \
+            cstring_clib_memcpy((to), (from) + (size_t)(pos), cs_count___ * sizeof(*(from)));                                                \
+            cstring_set_ttl_siz_((to), cs_count___ + 1);                                                                                     \
+            (to)[cs_count___] = 0;                                                                                                           \
+        }                                                                                                                                    \
     } while (0)
 
 /* ========================== */
@@ -650,6 +652,7 @@
 #define cstring_clib_memmove memmove
 #endif
 
+#include <limits.h>
 #include <stddef.h>
 
 /**
@@ -686,7 +689,7 @@ typedef struct cstring_metadata_ {
  * @return The cstring.
  */
 #define cstring_base_to_string_(ptr) \
-    ((void *)((cstring_metadata_t *)(void *)(ptr) + 1))
+    ((void *)((cstring_metadata_t *)(ptr) + 1))
 
 /**
  * @brief cstring_ttl_cap_ - For internal use, get the current capacity of the

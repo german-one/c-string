@@ -214,6 +214,14 @@ UTEST(test, cstring_size_length_capacity) {
     cstring_free(zerolenstr);
 }
 
+UTEST(test, cstring_max_size) {
+    ASSERT_TRUE(cstring_max_size(char) && (cstring_max_size(char) & 1) == 0);
+
+    /* -- wide string -- */
+
+    ASSERT_TRUE(cstring_max_size(wchar_t) && (cstring_max_size(wchar_t) & 1) == 0);
+}
+
 UTEST(test, cstring_reserve) {
     cstring_string_type(char) str = NULL;
 
