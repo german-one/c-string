@@ -211,7 +211,15 @@
 /**
  * @brief cstring_max_size - Get the maximum number of elements a string of the
  *        specified character type is able to hold.
- * @note The returned value is technically possible. However, typically
+ * @details
+ * For clarity, this is like: <br>
+ * `((min(PTRDIFF_MAX, (SIZE_MAX / 2)) - sizeof(metadata)) / sizeof(type) - 1)`,
+ * with -1 for the string terminator that is not counted. Also, (SIZE_MAX / 2)
+ * because any `array + SIZE_MAX` would be bogus. <br>
+ * PTRDIFF_MAX and SIZE_MAX may not be defined in ancient C libraries. Hence the
+ * calculation in the macro. However, the value of the macro is a constant
+ * expression. It is supposed to be calculated at compile time.
+ * @note The resulting value is technically possible. However, typically
  *       allocations of such a big size will fail.
  * @param type - The type of string to act on.
  * @return The maximum number of elements the string is able to hold.
@@ -626,6 +634,9 @@
 
 /** @cond INTERNAL */
 
+#include <limits.h>
+#include <stddef.h>
+
 /* in case C library functions need extra protection, allow these defines to be overridden. */
 #ifndef cstring_clib_free
 #include <stdlib.h>
@@ -651,9 +662,6 @@
 #include <string.h>
 #define cstring_clib_memmove memmove
 #endif
-
-#include <limits.h>
-#include <stddef.h>
 
 /**
  * @brief cstring_metadata_t - Header type that prefixes a cstring.
