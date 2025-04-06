@@ -638,18 +638,23 @@
 #include <stddef.h>
 
 /* in case C library functions need extra protection, allow these defines to be overridden. */
-#ifndef cstring_clib_free
+/* functions for allocation and deallocation need to correspond to each other, fall back to C library functions if not all are overridden */
+#if !defined(cstring_clib_free) || !defined(cstring_clib_malloc) || !defined(cstring_clib_realloc)
+#ifdef cstring_clib_free
+#undef cstring_clib_free
+#endif
+#ifdef cstring_clib_malloc
+#undef cstring_clib_malloc
+#endif
+#ifdef cstring_clib_realloc
+#undef cstring_clib_realloc
+#endif
 #include <stdlib.h>
 #define cstring_clib_free free
-#endif
-#ifndef cstring_clib_malloc
-#include <stdlib.h>
 #define cstring_clib_malloc malloc
-#endif
-#ifndef cstring_clib_realloc
-#include <stdlib.h>
 #define cstring_clib_realloc realloc
 #endif
+/* functions independent of memory allocation */
 #ifndef cstring_clib_assert
 #include <assert.h>
 #define cstring_clib_assert assert
