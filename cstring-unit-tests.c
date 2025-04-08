@@ -981,6 +981,78 @@ UTEST(test, cstring_reverse) {
     ASSERT_EQ(nullstr, NULL);
 }
 
+UTEST(test, cstring_find_rfind) {
+    ptrdiff_t off;
+    cstring_string_type(char) str = NULL;
+    cstring_assign(str, "abcdefghabcdefgh", 16);
+
+    cstring_find(str, 0, "gh", 2, off);
+    ASSERT_EQ(off, 6);
+    cstring_find(str, 5, "gh", 2, off);
+    ASSERT_EQ(off, 6);
+    cstring_find(str, 6, "gh", 2, off);
+    ASSERT_EQ(off, 6);
+    cstring_find(str, 7, "gh", 2, off);
+    ASSERT_EQ(off, 14);
+
+    cstring_rfind(str, -1, "gh", 2, off);
+    ASSERT_EQ(off, 14);
+    cstring_rfind(str, 15, "gh", 2, off);
+    ASSERT_EQ(off, 14);
+    cstring_rfind(str, 14, "gh", 2, off);
+    ASSERT_EQ(off, 14);
+    cstring_rfind(str, 13, "gh", 2, off);
+    ASSERT_EQ(off, 6);
+
+    cstring_free(str);
+
+    /* -- wide string -- */
+
+    cstring_string_type(wchar_t) wstr = NULL;
+    cstring_assign(wstr, L"abcdefghabcdefgh", 16);
+
+    cstring_find(wstr, 0, L"gh", 2, off);
+    ASSERT_EQ(off, 6);
+    cstring_find(wstr, 5, L"gh", 2, off);
+    ASSERT_EQ(off, 6);
+    cstring_find(wstr, 6, L"gh", 2, off);
+    ASSERT_EQ(off, 6);
+    cstring_find(wstr, 7, L"gh", 2, off);
+    ASSERT_EQ(off, 14);
+
+    cstring_rfind(wstr, -1, L"gh", 2, off);
+    ASSERT_EQ(off, 14);
+    cstring_rfind(wstr, 15, L"gh", 2, off);
+    ASSERT_EQ(off, 14);
+    cstring_rfind(wstr, 14, L"gh", 2, off);
+    ASSERT_EQ(off, 14);
+    cstring_rfind(wstr, 13, L"gh", 2, off);
+    ASSERT_EQ(off, 6);
+
+    cstring_free(wstr);
+
+    /* -- special cases -- */
+
+    cstring_assign(str, "x", 0);
+    cstring_find(str, 0, "", 0, off);
+    ASSERT_EQ(off, -1);
+    cstring_rfind(str, -1, "", 0, off);
+    ASSERT_EQ(off, -1);
+
+    cstring_assign(str, "", 0);
+    cstring_find(str, 0, "", 0, off);
+    ASSERT_EQ(off, -1);
+    cstring_rfind(str, -1, "", 0, off);
+    ASSERT_EQ(off, -1);
+    cstring_free(str);
+
+    cstring_string_type(char) nullstr = NULL;
+    cstring_find(nullstr, 0, "", 0, off);
+    ASSERT_EQ(off, -1);
+    cstring_rfind(nullstr, -1, "", 0, off);
+    ASSERT_EQ(off, -1);
+}
+
 UTEST(test, cstring_substring) {
     cstring_string_type(char) str    = NULL;
     cstring_string_type(char) substr = NULL;

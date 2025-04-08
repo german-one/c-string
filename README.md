@@ -89,6 +89,8 @@ int main(void) {
 | N/A | `cstring_trim(str, value, mode)` [^6] |
 | N/A | `cstring_fix(str, length, value, mode)` [^7] |
 | N/A | `cstring_reverse(str)` [^8] |
+| [`offset = str.find(s, pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/find) | `cstring_find(str, pos, s, count, offset)` |
+| [`offset = str.rfind(s, pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/rfind) | `cstring_rfind(str, pos, s, count, offset)` |
 | [`to = from.substring(pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/substring) | `cstring_substring(from, pos, count, to)` |
 
 [^1]: Initializes a NULL string. Nothing similar for `std::basic_string`.  

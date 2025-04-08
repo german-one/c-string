@@ -1,12 +1,12 @@
-#ifndef HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_0
-#define HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_0
+#ifndef HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_1
+#define HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_1
 /**
  * @copyright Copyright (c) 2025 Steffen Illhardt,
  *            Licensed under the MIT license
  *            ( https://opensource.org/license/mit/ ).
  * @brief     cstring - Heap implemented using C library allocation functions.
  * @file      cstring.h
- * @version   1.0
+ * @version   1.1
  * @details
  *   The c-string library is based on the c-vector library,
  *   Copyright (c) 2015 Evan Teran,
@@ -600,6 +600,110 @@
         }                                                    \
     } while (0)
 
+/* -------------- */
+/* --- search --- */
+
+/**
+ * @brief cstring_find - Finds the first occurrence of the given substring.
+ * @details Implements the Rabin-Karp algorithm.
+ * @param str        - The cstring.
+ * @param pos        - Position at which to start the search, i.e. the found
+ *                     substring must not begin in a position preceding `pos`.
+ *                     Zero means that the whole `str` is searched.
+ * @param ptr        - Pointer to the first character of the string to search
+ *                     for.
+ * @param count      - Length of the string to search for.
+ * @param ret_offset - Variable of type `ptrdiff_t` that receives the position
+ *                     of the first character of the found substring or -1 if no
+ *                     such substring is found.
+ * @return void
+ */
+#define cstring_find(str, pos, ptr, count, ret_offset)                                                                                                      \
+    do {                                                                                                                                                    \
+        const void *const tmp_ptr___ = (const void *)(ptr);                                                                                                 \
+        const ptrdiff_t sub_size__ = (ptrdiff_t)(count), str_size__ = (ptrdiff_t)cstring_size(str) - (ptrdiff_t)(pos);                                      \
+        if (!tmp_ptr___ || (ptrdiff_t)(pos) < 0 || sub_size__ > str_size__ || str_size__ <= 0 || sub_size__ <= 0) {                                         \
+            (ret_offset) = (ptrdiff_t)-1;                                                                                                                   \
+        } else if (sub_size__ == str_size__) {                                                                                                              \
+            (ret_offset) = (cstring_clib_memcmp((str) + (ptrdiff_t)(pos), (ptr), (size_t)sub_size__ * sizeof(*(str))) == 0) ? (ptrdiff_t)0 : (ptrdiff_t)-1; \
+        } else {                                                                                                                                            \
+            ptrdiff_t cs_off__;                                                                                                                             \
+            const ptrdiff_t end__ = sub_size__ - 1, cs_diff__ = (ptrdiff_t)cstring_size(str) - sub_size__;                                                  \
+            size_t str_hash__ = 0, sub_hash__ = 0, hash_factor__ = 1;                                                                                       \
+            const size_t mask__ = (sizeof(size_t) <= sizeof(*(str))) ? (size_t)-1 : (((size_t)1 << (sizeof(*(str)) * CHAR_BIT)) - 1);                       \
+            (ret_offset)        = (ptrdiff_t)-1;                                                                                                            \
+            for (cs_off__ = 0; cs_off__ < end__; ++cs_off__) {                                                                                              \
+                str_hash__ = (str_hash__ << 1) + ((size_t)(str)[cs_off__ + (ptrdiff_t)(pos)] & mask__);                                                     \
+                sub_hash__ = (sub_hash__ << 1) + ((size_t)(ptr)[cs_off__] & mask__);                                                                        \
+                hash_factor__ <<= 1;                                                                                                                        \
+            }                                                                                                                                               \
+            str_hash__ = (str_hash__ << 1) + ((size_t)(str)[cs_off__ + (ptrdiff_t)(pos)] & mask__);                                                         \
+            sub_hash__ = (sub_hash__ << 1) + ((size_t)(ptr)[cs_off__] & mask__);                                                                            \
+            cs_off__   = (ptrdiff_t)(pos);                                                                                                                  \
+            do {                                                                                                                                            \
+                if (sub_hash__ == str_hash__ && cstring_clib_memcmp((str) + cs_off__, ptr, (size_t)sub_size__ * sizeof(*(str))) == 0) {                     \
+                    (ret_offset) = cs_off__;                                                                                                                \
+                    break;                                                                                                                                  \
+                }                                                                                                                                           \
+                str_hash__ =                                                                                                                                \
+                    ((str_hash__ - hash_factor__ * ((size_t)(str)[cs_off__] & mask__)) << 1) + ((size_t)(str)[cs_off__ + sub_size__] & mask__);             \
+            } while (cs_off__++ < cs_diff__);                                                                                                               \
+        }                                                                                                                                                   \
+    } while (0)
+
+/**
+ * @brief cstring_rfind - Finds the last occurrence of the given substring.
+ * @details Implements the Rabin-Karp algorithm.
+ * @param str        - The cstring.
+ * @param pos        - Position at which to start the search, proceeded from
+ *                     right to left. Hence the found substring cannot begin in
+ *                     a position following `pos`. -1 means that the whole `str`
+ *                     is searched.
+ * @param ptr        - Pointer to the first character of the string to search
+ *                     for.
+ * @param count      - Length of the string to search for.
+ * @param ret_offset - Variable of type `ptrdiff_t` that receives the position
+ *                     of the first character of the found substring or -1 if no
+ *                     such substring is found.
+ * @return void
+ */
+#define cstring_rfind(str, pos, ptr, count, ret_offset)                                                                                                \
+    do {                                                                                                                                               \
+        const void *const tmp_ptr____ = (const void *)(ptr);                                                                                           \
+        const ptrdiff_t sub_size___   = (ptrdiff_t)(count);                                                                                            \
+        const ptrdiff_t str_size___   = ((ptrdiff_t)(pos) == -1 || (ptrdiff_t)(pos) + sub_size___ > (ptrdiff_t)cstring_size(str))                      \
+                                            ? (ptrdiff_t)cstring_size(str)                                                                             \
+                                            : ((ptrdiff_t)(pos) + sub_size___);                                                                        \
+        if (!tmp_ptr____ || (ptrdiff_t)(pos) < -1 || sub_size___ > str_size___ || !str_size___ || sub_size___ <= 0) {                                  \
+            (ret_offset) = (ptrdiff_t)-1;                                                                                                              \
+        } else if (sub_size___ == str_size___) {                                                                                                       \
+            (ret_offset) = (cstring_clib_memcmp((str), (ptr), (size_t)sub_size___ * sizeof(*(str))) == 0) ? (ptrdiff_t)0 : (ptrdiff_t)-1;              \
+        } else {                                                                                                                                       \
+            ptrdiff_t cs_off___;                                                                                                                       \
+            const ptrdiff_t cs_diff___ = str_size___ - sub_size___;                                                                                    \
+            size_t str_hash___ = 0, sub_hash___ = 0, hash_factor___ = 1;                                                                               \
+            const size_t mask___ = (sizeof(size_t) <= sizeof(*(str))) ? (size_t)-1 : (((size_t)1 << (sizeof(*(str)) * CHAR_BIT)) - 1);                 \
+            (ret_offset)         = (ptrdiff_t)-1;                                                                                                      \
+            for (cs_off___ = sub_size___ - 1; cs_off___; --cs_off___) {                                                                                \
+                str_hash___ = (str_hash___ << 1) + ((size_t)(str)[cs_off___ + cs_diff___] & mask___);                                                  \
+                sub_hash___ = (sub_hash___ << 1) + ((size_t)(ptr)[cs_off___] & mask___);                                                               \
+                hash_factor___ <<= 1;                                                                                                                  \
+            }                                                                                                                                          \
+            str_hash___ = (str_hash___ << 1) + ((size_t)(str)[cs_off___ + cs_diff___] & mask___);                                                      \
+            sub_hash___ = (sub_hash___ << 1) + ((size_t)(ptr)[cs_off___] & mask___);                                                                   \
+            cs_off___   = cs_diff___;                                                                                                                  \
+            do {                                                                                                                                       \
+                if (sub_hash___ == str_hash___ && cstring_clib_memcmp((str) + cs_off___, ptr, (size_t)sub_size___ * sizeof(*(str))) == 0) {            \
+                    (ret_offset) = cs_off___;                                                                                                          \
+                    break;                                                                                                                             \
+                }                                                                                                                                      \
+                --cs_off___;                                                                                                                           \
+                str_hash___ =                                                                                                                          \
+                    ((str_hash___ - hash_factor___ * ((size_t)(str)[cs_off___ + sub_size___] & mask___)) << 1) + ((size_t)(str)[cs_off___] & mask___); \
+            } while (cs_off___);                                                                                                                       \
+        }                                                                                                                                              \
+    } while (0)
+
 /* ------------------ */
 /* --- operations --- */
 
@@ -666,6 +770,10 @@
 #ifndef cstring_clib_memmove
 #include <string.h>
 #define cstring_clib_memmove memmove
+#endif
+#ifndef cstring_clib_memcmp
+#include <string.h>
+#define cstring_clib_memcmp memcmp
 #endif
 
 /**
