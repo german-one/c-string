@@ -91,6 +91,10 @@ int main(void) {
 | N/A | `cstring_reverse(str)` [^8] |
 | [`offset = str.find(s, pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/find) | `cstring_find(str, pos, s, count, offset)` |
 | [`offset = str.rfind(s, pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/rfind) | `cstring_rfind(str, pos, s, count, offset)` |
+| [`order = str1.compare(str2)`](https://en.cppreference.com/w/cpp/string/basic_string/compare) | `cstring_compare(str1, str2, order)` |
+| [`found = str.starts_with(s)`](https://en.cppreference.com/w/cpp/string/basic_string/starts_with) | `cstring_starts_with(str, s, count, found)` |
+| [`found = str.ends_with(s)`](https://en.cppreference.com/w/cpp/string/basic_string/ends_with) | `cstring_ends_with(str, s, count, found)` |
+| [`found = str.contains(s)`](https://en.cppreference.com/w/cpp/string/basic_string/contains) | `cstring_ends_with(str, s, count, found)` |
 | [`to = from.substring(pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/substring) | `cstring_substring(from, pos, count, to)` |
 
 [^1]: Initializes a NULL string. Nothing similar for `std::basic_string`.  

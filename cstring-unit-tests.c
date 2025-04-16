@@ -1053,6 +1053,161 @@ UTEST(test, cstring_find_rfind) {
     ASSERT_EQ(off, -1);
 }
 
+UTEST(test, cstring_compare) {
+    int res                        = 999;
+    cstring_string_type(char) str1 = NULL;
+    cstring_string_type(char) str2 = NULL;
+
+    cstring_assign(str1, "abc", 3);
+    cstring_assign(str2, "abc", 3);
+    cstring_compare(str1, str2, res);
+    ASSERT_EQ(res, 0);
+
+    str1[2] = 'x';
+    cstring_compare(str1, str2, res);
+    ASSERT_EQ(res, 1);
+
+    cstring_pop_back(str1);
+    cstring_compare(str1, str2, res);
+    ASSERT_EQ(res, -1);
+
+    cstring_assign(str1, "\xFF", 1);
+    cstring_compare(str1, str2, res);
+    ASSERT_EQ(res, 1);
+
+    cstring_assign(str1, "", 0);
+    cstring_assign(str2, "", 0);
+    cstring_compare(str1, str2, res);
+    ASSERT_EQ(res, 0);
+
+    cstring_free(str2);
+    cstring_free(str1);
+
+    /* -- wide string -- */
+
+    res                                = 999;
+    cstring_string_type(wchar_t) wstr1 = NULL;
+    cstring_string_type(wchar_t) wstr2 = NULL;
+    cstring_assign(wstr1, L"abc", 3);
+    cstring_assign(wstr2, L"abc", 3);
+
+    cstring_compare(wstr1, wstr2, res);
+    ASSERT_EQ(res, 0);
+
+    wstr1[2] = 'x';
+    cstring_compare(wstr1, wstr2, res);
+    ASSERT_EQ(res, 1);
+
+    cstring_pop_back(wstr1);
+    cstring_compare(wstr1, wstr2, res);
+    ASSERT_EQ(res, -1);
+
+    cstring_assign(wstr1, L"\xFF", 1);
+    cstring_compare(wstr1, wstr2, res);
+    ASSERT_EQ(res, 1);
+
+    cstring_assign(wstr1, L"", 0);
+    cstring_assign(wstr2, L"", 0);
+    cstring_compare(wstr1, wstr2, res);
+    ASSERT_EQ(res, 0);
+
+    cstring_free(wstr2);
+    cstring_free(wstr1);
+
+    /* -- special cases -- */
+
+    res                                = 999;
+    cstring_string_type(char) nullstr1 = NULL;
+    cstring_string_type(char) nullstr2 = NULL;
+    cstring_compare(nullstr1, nullstr2, res);
+    ASSERT_EQ(res, 999);
+}
+
+UTEST(test, cstring_starts_ends_with) {
+    int res;
+    cstring_string_type(char) str = NULL;
+    cstring_assign(str, literal, strlen_of(literal));
+
+    cstring_starts_with(str, "a", 1, res);
+    ASSERT_EQ(res, 1);
+    cstring_starts_with(str, "ab", 2, res);
+    ASSERT_EQ(res, 1);
+    cstring_starts_with(str, "abcde", 5, res);
+    ASSERT_EQ(res, 1);
+    cstring_starts_with(str, "b", 1, res);
+    ASSERT_EQ(res, 0);
+
+    cstring_ends_with(str, "e", 1, res);
+    ASSERT_EQ(res, 1);
+    cstring_ends_with(str, "de", 2, res);
+    ASSERT_EQ(res, 1);
+    cstring_ends_with(str, "abcde", 5, res);
+    ASSERT_EQ(res, 1);
+    cstring_ends_with(str, "d", 1, res);
+    ASSERT_EQ(res, 0);
+
+    cstring_free(str);
+
+    /* -- wide string -- */
+
+    cstring_string_type(wchar_t) wstr = NULL;
+    cstring_assign(wstr, wliteral, strlen_of(wliteral));
+
+    cstring_starts_with(wstr, L"a", 1, res);
+    ASSERT_EQ(res, 1);
+    cstring_starts_with(wstr, L"ab", 2, res);
+    ASSERT_EQ(res, 1);
+    cstring_starts_with(wstr, L"abcde", 5, res);
+    ASSERT_EQ(res, 1);
+    cstring_starts_with(wstr, L"b", 1, res);
+    ASSERT_EQ(res, 0);
+
+    cstring_ends_with(wstr, L"e", 1, res);
+    ASSERT_EQ(res, 1);
+    cstring_ends_with(wstr, L"de", 2, res);
+    ASSERT_EQ(res, 1);
+    cstring_ends_with(wstr, L"abcde", 5, res);
+    ASSERT_EQ(res, 1);
+    cstring_ends_with(wstr, L"d", 1, res);
+    ASSERT_EQ(res, 0);
+
+    cstring_free(wstr);
+
+    /* -- special cases -- */
+
+    res                               = 999;
+    cstring_string_type(char) nullstr = NULL;
+    cstring_starts_with(nullstr, "x", 1, res);
+    ASSERT_EQ(res, 0);
+    cstring_ends_with(nullstr, L"x", 1, res);
+    ASSERT_EQ(res, 0);
+}
+
+UTEST(test, cstring_contains) {
+    int res;
+    cstring_string_type(char) str = NULL;
+    cstring_assign(str, literal, strlen_of(literal));
+
+    cstring_contains(str, "de", 2, res);
+    ASSERT_EQ(res, 1);
+    cstring_contains(str, "ed", 2, res);
+    ASSERT_EQ(res, 0);
+
+    cstring_free(str);
+
+    /* -- wide string -- */
+
+    cstring_string_type(wchar_t) wstr = NULL;
+    cstring_assign(wstr, wliteral, strlen_of(wliteral));
+
+    cstring_contains(wstr, L"de", 2, res);
+    ASSERT_EQ(res, 1);
+    cstring_contains(wstr, L"ed", 2, res);
+    ASSERT_EQ(res, 0);
+
+    cstring_free(wstr);
+}
+
 UTEST(test, cstring_substring) {
     cstring_string_type(char) str    = NULL;
     cstring_string_type(char) substr = NULL;
