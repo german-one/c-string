@@ -1053,6 +1053,166 @@ UTEST(test, cstring_find_rfind) {
     ASSERT_EQ(off, -1);
 }
 
+UTEST(test, cstring_find_first_of) {
+    ptrdiff_t off;
+    cstring_string_type(char) str = NULL;
+    cstring_assign(str, "abcdefghabcdefgh", 16);
+
+    cstring_find_first_of(str, 0, "gh", 2, off);
+    ASSERT_EQ(off, 6);
+    cstring_find_first_of(str, 6, "gh", 2, off);
+    ASSERT_EQ(off, 6);
+    cstring_find_first_of(str, 7, "gh", 2, off);
+    ASSERT_EQ(off, 7);
+    cstring_find_first_of(str, 8, "gh", 2, off);
+    ASSERT_EQ(off, 14);
+    cstring_find_first_of(str, 0, "xh", 2, off);
+    ASSERT_EQ(off, 7);
+    cstring_find_first_of(str, 0, "xy", 2, off);
+    ASSERT_EQ(off, -1);
+
+    cstring_free(str);
+
+    /* -- wide string -- */
+
+    cstring_string_type(wchar_t) wstr = NULL;
+    cstring_assign(wstr, L"abcdefghabcdefgh", 16);
+
+    cstring_find_first_of(wstr, 0, L"gh", 2, off);
+    ASSERT_EQ(off, 6);
+    cstring_find_first_of(wstr, 6, L"gh", 2, off);
+    ASSERT_EQ(off, 6);
+    cstring_find_first_of(wstr, 7, L"gh", 2, off);
+    ASSERT_EQ(off, 7);
+    cstring_find_first_of(wstr, 8, L"gh", 2, off);
+    ASSERT_EQ(off, 14);
+    cstring_find_first_of(wstr, 0, L"xh", 2, off);
+    ASSERT_EQ(off, 7);
+    cstring_find_first_of(wstr, 0, L"xy", 2, off);
+    ASSERT_EQ(off, -1);
+
+    cstring_free(wstr);
+}
+
+UTEST(test, cstring_find_first_not_of) {
+    ptrdiff_t off;
+    cstring_string_type(char) str = NULL;
+    cstring_assign(str, "abcdefghabcdefgh", 16);
+
+    cstring_find_first_not_of(str, 0, "gh", 2, off);
+    ASSERT_EQ(off, 0);
+    cstring_find_first_not_of(str, 5, "gh", 2, off);
+    ASSERT_EQ(off, 5);
+    cstring_find_first_not_of(str, 6, "gh", 2, off);
+    ASSERT_EQ(off, 8);
+    cstring_find_first_not_of(str, 7, "gh", 2, off);
+    ASSERT_EQ(off, 8);
+    cstring_find_first_not_of(str, 0, "abcdefgh", 8, off);
+    ASSERT_EQ(off, -1);
+
+    cstring_free(str);
+
+    /* -- wide string -- */
+
+    cstring_string_type(wchar_t) wstr = NULL;
+    cstring_assign(wstr, L"abcdefghabcdefgh", 16);
+
+    cstring_find_first_not_of(wstr, 0, L"gh", 2, off);
+    ASSERT_EQ(off, 0);
+    cstring_find_first_not_of(wstr, 5, L"gh", 2, off);
+    ASSERT_EQ(off, 5);
+    cstring_find_first_not_of(wstr, 6, L"gh", 2, off);
+    ASSERT_EQ(off, 8);
+    cstring_find_first_not_of(wstr, 7, L"gh", 2, off);
+    ASSERT_EQ(off, 8);
+    cstring_find_first_not_of(wstr, 0, L"abcdefgh", 8, off);
+    ASSERT_EQ(off, -1);
+
+    cstring_free(wstr);
+}
+
+UTEST(test, cstring_find_last_of) {
+    ptrdiff_t off;
+    cstring_string_type(char) str = NULL;
+    cstring_assign(str, "abcdefghabcdefgh", 16);
+
+    cstring_find_last_of(str, -1, "gh", 2, off);
+    ASSERT_EQ(off, 15);
+    cstring_find_last_of(str, 15, "gh", 2, off);
+    ASSERT_EQ(off, 15);
+    cstring_find_last_of(str, 14, "gh", 2, off);
+    ASSERT_EQ(off, 14);
+    cstring_find_last_of(str, 13, "gh", 2, off);
+    ASSERT_EQ(off, 7);
+    cstring_find_last_of(str, -1, "xh", 2, off);
+    ASSERT_EQ(off, 15);
+    cstring_find_last_of(str, -1, "xy", 2, off);
+    ASSERT_EQ(off, -1);
+
+    cstring_free(str);
+
+    /* -- wide string -- */
+
+    cstring_string_type(wchar_t) wstr = NULL;
+    cstring_assign(wstr, L"abcdefghabcdefgh", 16);
+
+    cstring_find_last_of(wstr, -1, L"gh", 2, off);
+    ASSERT_EQ(off, 15);
+    cstring_find_last_of(wstr, 15, L"gh", 2, off);
+    ASSERT_EQ(off, 15);
+    cstring_find_last_of(wstr, 14, L"gh", 2, off);
+    ASSERT_EQ(off, 14);
+    cstring_find_last_of(wstr, 13, L"gh", 2, off);
+    ASSERT_EQ(off, 7);
+    cstring_find_last_of(wstr, -1, L"xh", 2, off);
+    ASSERT_EQ(off, 15);
+    cstring_find_last_of(wstr, -1, L"xy", 2, off);
+    ASSERT_EQ(off, -1);
+
+    cstring_free(wstr);
+}
+
+UTEST(test, cstring_find_last_not_of) {
+    ptrdiff_t off;
+    cstring_string_type(char) str = NULL;
+    cstring_assign(str, "abcdefghabcdefgh", 16);
+
+    cstring_find_last_not_of(str, -1, "gh", 2, off);
+    ASSERT_EQ(off, 13);
+    cstring_find_last_not_of(str, 15, "gh", 2, off);
+    ASSERT_EQ(off, 13);
+    cstring_find_last_not_of(str, 14, "gh", 2, off);
+    ASSERT_EQ(off, 13);
+    cstring_find_last_not_of(str, 13, "gh", 2, off);
+    ASSERT_EQ(off, 13);
+    cstring_find_last_not_of(str, 12, "gh", 2, off);
+    ASSERT_EQ(off, 12);
+    cstring_find_last_not_of(str, -1, "abcdefgh", 8, off);
+    ASSERT_EQ(off, -1);
+
+    cstring_free(str);
+
+    /* -- wide string -- */
+
+    cstring_string_type(wchar_t) wstr = NULL;
+    cstring_assign(wstr, L"abcdefghabcdefgh", 16);
+
+    cstring_find_last_not_of(wstr, -1, L"gh", 2, off);
+    ASSERT_EQ(off, 13);
+    cstring_find_last_not_of(wstr, 15, L"gh", 2, off);
+    ASSERT_EQ(off, 13);
+    cstring_find_last_not_of(wstr, 14, L"gh", 2, off);
+    ASSERT_EQ(off, 13);
+    cstring_find_last_not_of(wstr, 13, L"gh", 2, off);
+    ASSERT_EQ(off, 13);
+    cstring_find_last_not_of(wstr, 12, L"gh", 2, off);
+    ASSERT_EQ(off, 12);
+    cstring_find_last_not_of(wstr, -1, L"abcdefgh", 8, off);
+    ASSERT_EQ(off, -1);
+
+    cstring_free(wstr);
+}
+
 UTEST(test, cstring_compare) {
     int res                        = 999;
     cstring_string_type(char) str1 = NULL;

@@ -604,7 +604,7 @@
 /* --- search --- */
 
 /**
- * @brief cstring_find - Finds the first occurrence of the given substring.
+ * @brief cstring_find - Find the first occurrence of the given substring.
  * @details Implements the Rabin-Karp algorithm.
  * @param str        - The cstring.
  * @param pos        - Position at which to start the search, i.e. the found
@@ -659,7 +659,7 @@
     } while (0)
 
 /**
- * @brief cstring_rfind - Finds the last occurrence of the given substring.
+ * @brief cstring_rfind - Find the last occurrence of the given substring.
  * @details Implements the Rabin-Karp algorithm.
  * @param str        - The cstring.
  * @param pos        - Position at which to start the search, proceeded from
@@ -717,6 +717,72 @@
             } while (cs_off___);                                                                                                       \
         }                                                                                                                              \
     } while (0)
+
+/**
+ * @brief cstring_find_first_of - Find the first character equal to one of the
+ *        characters in the given character sequence.
+ * @param str        - The cstring.
+ * @param pos        - Position at which to begin searching.
+ * @param ptr        - Pointer to the first character of the string identifying
+ *                     characters to search for.
+ * @param count      - Length of the string of characters to search for.
+ * @param ret_offset - Variable of type `ptrdiff_t` that receives the position
+ *                     of the first found character or -1 if no such character
+ *                     is found.
+ * @return void
+ */
+#define cstring_find_first_of(str, pos, ptr, count, ret_offset) \
+    find_first_of_(0, str, pos, ptr, count, ret_offset)
+
+/**
+ * @brief cstring_find_first_not_of - Find the first character equal to none of
+ *        the characters in the given character sequence.
+ * @param str        - The cstring.
+ * @param pos        - Position at which to begin searching.
+ * @param ptr        - Pointer to the first character of the string identifying
+ *                     characters to search for.
+ * @param count      - Length of the string of characters to search for.
+ * @param ret_offset - Variable of type `ptrdiff_t` that receives the position
+ *                     of the first found character or -1 if no such character
+ *                     is found.
+ * @return void
+ */
+#define cstring_find_first_not_of(str, pos, ptr, count, ret_offset) \
+    find_first_of_(1, str, pos, ptr, count, ret_offset)
+
+/**
+ * @brief cstring_find_last_of - Find the last character equal to one of the
+ *        characters in the given character sequence.
+ * @param str        - The cstring.
+ * @param pos        - Position at which to begin searching. -1 means that the
+ *                     whole `str` is searched.
+ * @param ptr        - Pointer to the first character of the string identifying
+ *                     characters to search for.
+ * @param count      - Length of the string of characters to search for.
+ * @param ret_offset - Variable of type `ptrdiff_t` that receives the position
+ *                     of the first found character or -1 if no such character
+ *                     is found.
+ * @return void
+ */
+#define cstring_find_last_of(str, pos, ptr, count, ret_offset) \
+    find_last_of_(0, str, pos, ptr, count, ret_offset)
+
+/**
+ * @brief cstring_find_last_not_of - Find the last character equal to none of
+ *        the characters in the given character sequence.
+ * @param str        - The cstring.
+ * @param pos        - Position at which to begin searching. -1 means that the
+ *                     whole `str` is searched.
+ * @param ptr        - Pointer to the first character of the string identifying
+ *                     characters to search for.
+ * @param count      - Length of the string of characters to search for.
+ * @param ret_offset - Variable of type `ptrdiff_t` that receives the position
+ *                     of the first found character or -1 if no such character
+ *                     is found.
+ * @return void
+ */
+#define cstring_find_last_not_of(str, pos, ptr, count, ret_offset) \
+    find_last_of_(1, str, pos, ptr, count, ret_offset)
 
 /* ------------------ */
 /* --- operations --- */
@@ -973,6 +1039,86 @@ typedef struct cstring_metadata_ {
         ptrdiff_t n___ = (ptrdiff_t)(n) - (ptrdiff_t)1;              \
         while (((ret_eq) = (s1)[n___] == (s2)[n___]) && --n___ >= 0) \
             ;                                                        \
+    } while (0)
+
+/**
+ * @brief find_first_of_ - For internal use, find the first character equal to
+ *        one or none (depending on `not_of`) of the characters in the given
+ *        character sequence.
+ * @param not_of     - 0 for find_first_of behavior, 1 for find_first_not_of
+ *                     behavior.
+ * @param str        - The cstring.
+ * @param pos        - Position at which to begin searching.
+ * @param ptr        - Pointer to the first character of the string identifying
+ *                     characters to search for.
+ * @param count      - Length of the string of characters to search for.
+ * @param ret_offset - Variable of type `ptrdiff_t` that receives the position
+ *                     of the first found character or -1 if no such character
+ *                     is found.
+ * @return void
+ */
+#define find_first_of_(not_of, str, pos, ptr, count, ret_offset)                                     \
+    do {                                                                                             \
+        const void *const chk__      = (const void *)(ptr);                                          \
+        const ptrdiff_t search_siz__ = (ptrdiff_t)(count), str_siz__ = (ptrdiff_t)cstring_size(str); \
+        if (!chk__ || (ptrdiff_t)(pos) < 0 || str_siz__ <= (ptrdiff_t)(pos) || search_siz__ <= 0) {  \
+            (ret_offset) = (ptrdiff_t)-1;                                                            \
+        } else {                                                                                     \
+            ptrdiff_t str_off__ = (ptrdiff_t)(pos);                                                  \
+            for (; str_off__ < str_siz__; ++str_off__) {                                             \
+                ptrdiff_t search_off__ = 0;                                                          \
+                for (; search_off__ < search_siz__; ++search_off__) {                                \
+                    if ((str)[str_off__] == (ptr)[search_off__]) {                                   \
+                        break;                                                                       \
+                    }                                                                                \
+                }                                                                                    \
+                if ((search_off__ == search_siz__) == (not_of)) {                                    \
+                    break;                                                                           \
+                }                                                                                    \
+            }                                                                                        \
+            (ret_offset) = (str_off__ == str_siz__) ? (ptrdiff_t)-1 : str_off__;                     \
+        }                                                                                            \
+    } while (0)
+
+/**
+ * @brief find_last_of_ - For internal use, find the last character equal to
+ *        one or none (depending on `not_of`) of the characters in the given
+ *        character sequence.
+ * @param not_of     - 0 for find_last_of behavior, 1 for find_last_not_of
+ *                     behavior.
+ * @param str        - The cstring.
+ * @param pos        - Position at which to begin searching.
+ * @param ptr        - Pointer to the first character of the string identifying
+ *                     characters to search for.
+ * @param count      - Length of the string of characters to search for.
+ * @param ret_offset - Variable of type `ptrdiff_t` that receives the position
+ *                     of the first found character or -1 if no such character
+ *                     is found.
+ * @return void
+ */
+#define find_last_of_(not_of, str, pos, ptr, count, ret_offset)                                                      \
+    do {                                                                                                             \
+        const void *const chk___      = (const void *)(ptr);                                                         \
+        const ptrdiff_t search_siz___ = (ptrdiff_t)(count);                                                          \
+        ptrdiff_t str_off___          = ((ptrdiff_t)(pos) == -1 || (ptrdiff_t)(pos) >= (ptrdiff_t)cstring_size(str)) \
+                                            ? (ptrdiff_t)cstring_size(str) - 1                                       \
+                                            : (ptrdiff_t)(pos);                                                      \
+        if (!chk___ || (ptrdiff_t)(pos) < -1 || str_off___ < 0 || search_siz___ <= 0) {                              \
+            (ret_offset) = (ptrdiff_t)-1;                                                                            \
+        } else {                                                                                                     \
+            for (; str_off___ >= 0; --str_off___) {                                                                  \
+                ptrdiff_t search_off___ = 0;                                                                         \
+                for (; search_off___ < search_siz___; ++search_off___) {                                             \
+                    if ((str)[str_off___] == (ptr)[search_off___]) {                                                 \
+                        break;                                                                                       \
+                    }                                                                                                \
+                }                                                                                                    \
+                if ((search_off___ == search_siz___) == (not_of)) {                                                  \
+                    break;                                                                                           \
+                }                                                                                                    \
+            }                                                                                                        \
+            (ret_offset) = str_off___;                                                                               \
+        }                                                                                                            \
     } while (0)
 
 /**

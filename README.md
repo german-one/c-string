@@ -1,6 +1,6 @@
 This is a type-safe, header-only implementation of a `std::basic_string`-like string in plain C code.  
 It can be considered an offshoot of the [c-vector](https://github.com/eteran/c-vector) library and is intended to be binary compatible with it. Many sequences of the `c-string` library essentially correspond to the `c-vector` library code. All credits go to [eteran](https://github.com/eteran) and contributors.  
-While the `c-vector` library implements macros to emulate methods of a `std::vector`, the `c-string` library is specialized for null-terminated strings of characters. Its macros emulate the subset of `std::basic_string` methods that can't be trivially mimicked using functions of the C string library. A few additional features are implemented that don't have an equivalent for a `std::basic_string`.  
+While the `c-vector` library implements macros to emulate methods of a `std::vector`, the `c-string` library is specialized for null-terminated strings of characters. Its macros emulate `std::basic_string` methods. A few additional features are implemented that don't have an equivalent for a `std::basic_string`.  
   
 Just like the `cvector`, a `cstring` is prefixed with metadata, in the tradition of a length-prefixed string implementation.  
 The members of the `cstring` metadata are found at the same offset as those of a `cvector`. They count all characters (incl. the terminating null) which makes a `cstring` _interchangeable_ with a `cvector` of the same set of consecutive characters. Unlike the `cvector` macros (and as is usual for strings) the `cstring` macros, which return size and capacity, do not count the string terminator.  
@@ -91,6 +91,10 @@ int main(void) {
 | N/A | `cstring_reverse(str)` [^8] |
 | [`offset = str.find(s, pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/find) | `cstring_find(str, pos, s, count, offset)` |
 | [`offset = str.rfind(s, pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/rfind) | `cstring_rfind(str, pos, s, count, offset)` |
+| [`offset = str.find_first_of(s, pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/find_first_of) | `cstring_find_first_of(str, pos, s, count, offset)` |
+| [`offset = str.find_first_not_of(s, pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/find_first_not_of) | `cstring_find_first_not_of(str, pos, s, count, offset)` |
+| [`offset = str.find_last_of(s, pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/find_last_of) | `cstring_find_last_of(str, pos, s, count, offset)` |
+| [`offset = str.find_last_not_of(s, pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/find_last_not_of) | `cstring_find_last_not_of(str, pos, s, count, offset)` |
 | [`order = str1.compare(str2)`](https://en.cppreference.com/w/cpp/string/basic_string/compare) | `cstring_compare(str1, str2, order)` |
 | [`found = str.starts_with(s)`](https://en.cppreference.com/w/cpp/string/basic_string/starts_with) | `cstring_starts_with(str, s, count, found)` |
 | [`found = str.ends_with(s)`](https://en.cppreference.com/w/cpp/string/basic_string/ends_with) | `cstring_ends_with(str, s, count, found)` |
