@@ -54,7 +54,7 @@ int main(void) {
 }
 
 ```
-
+  
 ### API
 
 | **std::basic_string** | **cstring** |
@@ -100,7 +100,9 @@ int main(void) {
 | [`found = str.ends_with(s)`](https://en.cppreference.com/w/cpp/string/basic_string/ends_with) | `cstring_ends_with(str, s, count, found)` |
 | [`found = str.contains(s)`](https://en.cppreference.com/w/cpp/string/basic_string/contains) | `cstring_ends_with(str, s, count, found)` |
 | [`to = from.substring(pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/substring) | `cstring_substring(from, pos, count, to)` |
-
+  
+Neil Henning's [unit test header](https://github.com/sheredom/utest.h) is used to verify the proper functionality of this API.  
+  
 [^1]: Initializes a NULL string. Nothing similar for `std::basic_string`.  
 [^2]: Declares a static cstring literal of `const type`. This is comparable with a C++20 `constexpr std::basic_string`.  
 [^3]: Allocates and initializes a zero-length string.  
@@ -109,3 +111,4 @@ int main(void) {
 [^6]: Removes contiguous occurrences of the specified character from the begin and/or the end of a cstring.  
 [^7]: Updates the cstring to a fixed length by either padding or shortening.  
 [^8]: Reverses the character order in the cstring.  
+  
