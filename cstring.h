@@ -1042,6 +1042,29 @@ typedef struct cstring_metadata_ {
     } while (0)
 
 /**
+ * @brief make_charmask_ - For internal use, create a bit mask that helps to
+ *        avoid the complexity of find_first_of_ and find_last_of_ being always
+ *        O(n*m).
+ * @param ptr    - Pointer to the first character of the character sequence.
+ * @param count  - Length of the character sequence.
+ * @param chmask - Variable of type `size_t` that receives the created bit mask.
+ * @return void
+ */
+#define make_charmask_(ptr, count, chmask)                          \
+    do {                                                            \
+        const size_t type_mask__ =                                  \
+            (sizeof(size_t) <= sizeof(*(ptr)))                      \
+                ? (size_t)-1                                        \
+                : (((size_t)1 << (sizeof(*(ptr)) * CHAR_BIT)) - 1); \
+        ptrdiff_t ch_idx__ = 0;                                     \
+        (chmask)           = 0;                                     \
+        while (ch_idx__ < (count)) {                                \
+            (chmask) |= (size_t)(ptr)[ch_idx__++];                  \
+        }                                                           \
+        (chmask) = (~(chmask)) & type_mask__;                       \
+    } while (0)
+
+/**
  * @brief find_first_of_ - For internal use, find the first character equal to
  *        one or none (depending on `not_of`) of the characters in the given
  *        character sequence.
@@ -1064,10 +1087,15 @@ typedef struct cstring_metadata_ {
         if (!chk__ || (ptrdiff_t)(pos) < 0 || str_siz__ <= (ptrdiff_t)(pos) || search_siz__ <= 0) {  \
             (ret_offset) = (ptrdiff_t)-1;                                                            \
         } else {                                                                                     \
+            size_t ch_mask__;                                                                        \
+            ptrdiff_t search_off__;                                                                  \
             ptrdiff_t str_off__ = (ptrdiff_t)(pos);                                                  \
+            make_charmask_((ptr), search_siz__, ch_mask__);                                          \
             for (; str_off__ < str_siz__; ++str_off__) {                                             \
-                ptrdiff_t search_off__ = 0;                                                          \
-                for (; search_off__ < search_siz__; ++search_off__) {                                \
+                if ((size_t)(str)[str_off__] & ch_mask__) {                                          \
+                    continue;                                                                        \
+                }                                                                                    \
+                for (search_off__ = 0; search_off__ < search_siz__; ++search_off__) {                \
                     if ((str)[str_off__] == (ptr)[search_off__]) {                                   \
                         break;                                                                       \
                     }                                                                                \
@@ -1106,9 +1134,14 @@ typedef struct cstring_metadata_ {
         if (!chk___ || (ptrdiff_t)(pos) < -1 || str_off___ < 0 || search_siz___ <= 0) {                              \
             (ret_offset) = (ptrdiff_t)-1;                                                                            \
         } else {                                                                                                     \
+            size_t ch_mask___;                                                                                       \
+            ptrdiff_t search_off___;                                                                                 \
+            make_charmask_((ptr), search_siz___, ch_mask___);                                                        \
             for (; str_off___ >= 0; --str_off___) {                                                                  \
-                ptrdiff_t search_off___ = 0;                                                                         \
-                for (; search_off___ < search_siz___; ++search_off___) {                                             \
+                if ((size_t)(str)[str_off___] & ch_mask___) {                                                        \
+                    continue;                                                                                        \
+                }                                                                                                    \
+                for (search_off___ = 0; search_off___ < search_siz___; ++search_off___) {                            \
                     if ((str)[str_off___] == (ptr)[search_off___]) {                                                 \
                         break;                                                                                       \
                     }                                                                                                \
