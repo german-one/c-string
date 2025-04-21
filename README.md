@@ -101,7 +101,16 @@ int main(void) {
 | [`found = str.contains(s)`](https://en.cppreference.com/w/cpp/string/basic_string/contains) | `cstring_ends_with(str, s, count, found)` |
 | [`to = from.substring(pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/substring) | `cstring_substring(from, pos, count, to)` |
   
-Neil Henning's [unit test header](https://github.com/sheredom/utest.h) is used to verify the proper functionality of this API.  
+### Extended vector API  
+Support tokenization of a string.  
+  
+| **Macro** | **Description** |
+| --------- | --------------- |
+| `cstring_array_type(type) arr = NULL` | Declare a vector of `cstring` using the specified character type. |
+| `cstring_split(str, max_tok, ptr, count, ret_array)` | Tokenize `str` into a NULL-terminated vector of `cstring`. |
+| `cstring_array_free(arr)` | Recursively free all memory associated with the vector previously created by `cstring_split()`. |
+  
+Neil Henning's [unit test header](https://github.com/sheredom/utest.h) is used to verify the proper functionality of all API macros.  
   
 [^1]: Initializes a NULL string. Nothing similar for `std::basic_string`.  
 [^2]: Declares a static cstring literal of `const type`. This is comparable with a C++20 `constexpr std::basic_string`.  

@@ -1423,4 +1423,192 @@ UTEST(test, cstring_substring) {
     cstring_free(str);
 }
 
+UTEST(test, cstring_split) {
+    int i;
+    cstring_string_type(char) str = NULL;
+    cstring_array_type(char) arr  = NULL;
+
+    cstring_assign(str, "a;b;c", 5);
+    cstring_split(str, -1, ";", 1, arr);
+    ASSERT_EQ(cstring_size(arr), 3U);
+    ASSERT_EQ(cstring_capacity(arr), 63U);
+    ASSERT_EQ(cstring_size(arr[0]), 1U);
+    ASSERT_STREQ(arr[0], "a");
+    ASSERT_EQ(cstring_size(arr[1]), 1U);
+    ASSERT_STREQ(arr[1], "b");
+    ASSERT_EQ(cstring_size(arr[2]), 1U);
+    ASSERT_STREQ(arr[2], "c");
+
+    cstring_split(str, 2, ";", 1, arr);
+    ASSERT_EQ(cstring_size(arr), 2U);
+    ASSERT_EQ(cstring_size(arr[0]), 1U);
+    ASSERT_STREQ(arr[0], "a");
+    ASSERT_EQ(cstring_size(arr[1]), 3U);
+    ASSERT_STREQ(arr[1], "b;c");
+
+    cstring_split(str, 1000, ";", 1, arr);
+    ASSERT_EQ(cstring_size(arr), 3U);
+    ASSERT_EQ(cstring_size(arr[0]), 1U);
+    ASSERT_STREQ(arr[0], "a");
+    ASSERT_EQ(cstring_size(arr[1]), 1U);
+    ASSERT_STREQ(arr[1], "b");
+    ASSERT_EQ(cstring_size(arr[2]), 1U);
+    ASSERT_STREQ(arr[2], "c");
+
+    cstring_assign(str, ";;;;", 4);
+    cstring_split(str, -1, ";", 1, arr);
+    ASSERT_EQ(cstring_size(arr), 5U);
+    for (i = 0; i < 5; ++i) {
+        ASSERT_EQ(cstring_size(arr[i]), 0U);
+        ASSERT_STREQ(arr[i], "");
+    }
+
+    cstring_assign(str, ";b;", 3);
+    cstring_split(str, -1, ";", 1, arr);
+    ASSERT_EQ(cstring_size(arr), 3U);
+    ASSERT_EQ(cstring_size(arr[0]), 0U);
+    ASSERT_STREQ(arr[0], "");
+    ASSERT_EQ(cstring_size(arr[1]), 1U);
+    ASSERT_STREQ(arr[1], "b");
+    ASSERT_EQ(cstring_size(arr[2]), 0U);
+    ASSERT_STREQ(arr[2], "");
+
+    cstring_assign(str, "abc", 3);
+    cstring_split(str, -1, ";", 1, arr);
+    ASSERT_EQ(cstring_size(arr), 1U);
+    ASSERT_EQ(cstring_size(arr[0]), 3U);
+    ASSERT_STREQ(arr[0], "abc");
+
+    cstring_assign(str, "abc;defg", 8);
+    cstring_split(str, -1, ";", 1, arr);
+    ASSERT_EQ(cstring_size(arr), 2U);
+    ASSERT_EQ(cstring_size(arr[0]), 3U);
+    ASSERT_STREQ(arr[0], "abc");
+    ASSERT_EQ(cstring_size(arr[1]), 4U);
+    ASSERT_STREQ(arr[1], "defg");
+
+    cstring_assign(str, "a;;b;;c", 7);
+    cstring_split(str, -1, ";", 1, arr);
+    ASSERT_EQ(cstring_size(arr), 5U);
+    ASSERT_EQ(cstring_size(arr[0]), 1U);
+    ASSERT_STREQ(arr[0], "a");
+    ASSERT_EQ(cstring_size(arr[1]), 0U);
+    ASSERT_STREQ(arr[1], "");
+    ASSERT_EQ(cstring_size(arr[2]), 1U);
+    ASSERT_STREQ(arr[2], "b");
+    ASSERT_EQ(cstring_size(arr[3]), 0U);
+    ASSERT_STREQ(arr[3], "");
+    ASSERT_EQ(cstring_size(arr[4]), 1U);
+    ASSERT_STREQ(arr[4], "c");
+
+    cstring_split(str, -1, ";;", 2, arr);
+    ASSERT_EQ(cstring_size(arr), 3U);
+    ASSERT_EQ(cstring_size(arr[0]), 1U);
+    ASSERT_STREQ(arr[0], "a");
+    ASSERT_EQ(cstring_size(arr[1]), 1U);
+    ASSERT_STREQ(arr[1], "b");
+    ASSERT_EQ(cstring_size(arr[2]), 1U);
+    ASSERT_STREQ(arr[2], "c");
+
+    cstring_array_free(arr);
+    cstring_free(str);
+
+    /* -- wide string -- */
+
+    cstring_string_type(wchar_t) wstr = NULL;
+    cstring_array_type(wchar_t) warr  = NULL;
+
+    cstring_assign(wstr, L"a;b;c", 5);
+    cstring_split(wstr, -1, L";", 1, warr);
+    ASSERT_EQ(cstring_size(warr), 3U);
+    ASSERT_EQ(cstring_capacity(warr), 63U);
+    ASSERT_EQ(cstring_size(warr[0]), 1U);
+    ASSERT_TRUE(wcseq(warr[0], L"a"));
+    ASSERT_EQ(cstring_size(warr[1]), 1U);
+    ASSERT_TRUE(wcseq(warr[1], L"b"));
+    ASSERT_EQ(cstring_size(warr[2]), 1U);
+    ASSERT_TRUE(wcseq(warr[2], L"c"));
+
+    cstring_split(wstr, 2, L";", 1, warr);
+    ASSERT_EQ(cstring_size(warr), 2U);
+    ASSERT_EQ(cstring_size(warr[0]), 1U);
+    ASSERT_TRUE(wcseq(warr[0], L"a"));
+    ASSERT_EQ(cstring_size(warr[1]), 3U);
+    ASSERT_TRUE(wcseq(warr[1], L"b;c"));
+
+    cstring_split(wstr, 1000, L";", 1, warr);
+    ASSERT_EQ(cstring_size(warr), 3U);
+    ASSERT_EQ(cstring_size(warr[0]), 1U);
+    ASSERT_TRUE(wcseq(warr[0], L"a"));
+    ASSERT_EQ(cstring_size(warr[1]), 1U);
+    ASSERT_TRUE(wcseq(warr[1], L"b"));
+    ASSERT_EQ(cstring_size(warr[2]), 1U);
+    ASSERT_TRUE(wcseq(warr[2], L"c"));
+
+    cstring_assign(wstr, L";;;;", 4);
+    cstring_split(wstr, -1, L";", 1, warr);
+    ASSERT_EQ(cstring_size(warr), 5U);
+    for (i = 0; i < 5; ++i) {
+        ASSERT_EQ(cstring_size(warr[i]), 0U);
+        ASSERT_TRUE(wcseq(warr[i], L""));
+    }
+
+    cstring_assign(wstr, L";b;", 3);
+    cstring_split(wstr, -1, L";", 1, warr);
+    ASSERT_EQ(cstring_size(warr), 3U);
+    ASSERT_EQ(cstring_size(warr[0]), 0U);
+    ASSERT_TRUE(wcseq(warr[0], L""));
+    ASSERT_EQ(cstring_size(warr[1]), 1U);
+    ASSERT_TRUE(wcseq(warr[1], L"b"));
+    ASSERT_EQ(cstring_size(warr[2]), 0U);
+    ASSERT_TRUE(wcseq(warr[2], L""));
+
+    cstring_assign(wstr, L"abc", 3);
+    cstring_split(wstr, -1, L";", 1, warr);
+    ASSERT_EQ(cstring_size(warr), 1U);
+    ASSERT_EQ(cstring_size(warr[0]), 3U);
+    ASSERT_TRUE(wcseq(warr[0], L"abc"));
+
+    cstring_assign(wstr, L"abc;defg", 8);
+    cstring_split(wstr, -1, L";", 1, warr);
+    ASSERT_EQ(cstring_size(warr), 2U);
+    ASSERT_EQ(cstring_size(warr[0]), 3U);
+    ASSERT_TRUE(wcseq(warr[0], L"abc"));
+    ASSERT_EQ(cstring_size(warr[1]), 4U);
+    ASSERT_TRUE(wcseq(warr[1], L"defg"));
+
+    cstring_assign(wstr, L"a;;b;;c", 7);
+    cstring_split(wstr, -1, L";", 1, warr);
+    ASSERT_EQ(cstring_size(warr), 5U);
+    ASSERT_EQ(cstring_size(warr[0]), 1U);
+    ASSERT_TRUE(wcseq(warr[0], L"a"));
+    ASSERT_EQ(cstring_size(warr[1]), 0U);
+    ASSERT_TRUE(wcseq(warr[1], L""));
+    ASSERT_EQ(cstring_size(warr[2]), 1U);
+    ASSERT_TRUE(wcseq(warr[2], L"b"));
+    ASSERT_EQ(cstring_size(warr[3]), 0U);
+    ASSERT_TRUE(wcseq(warr[3], L""));
+    ASSERT_EQ(cstring_size(warr[4]), 1U);
+    ASSERT_TRUE(wcseq(warr[4], L"c"));
+
+    cstring_split(wstr, -1, L";;", 2, warr);
+    ASSERT_EQ(cstring_size(warr), 3U);
+    ASSERT_EQ(cstring_size(warr[0]), 1U);
+    ASSERT_TRUE(wcseq(warr[0], L"a"));
+    ASSERT_EQ(cstring_size(warr[1]), 1U);
+    ASSERT_TRUE(wcseq(warr[1], L"b"));
+    ASSERT_EQ(cstring_size(warr[2]), 1U);
+    ASSERT_TRUE(wcseq(warr[2], L"c"));
+
+    cstring_array_free(warr);
+    cstring_free(wstr);
+
+    /* -- special cases -- */
+
+    cstring_string_type(char) nullstr = NULL;
+    cstring_array_type(char) nullarr  = NULL;
+    cstring_split(nullstr, -1, L";", 2, nullarr);
+    ASSERT_EQ(nullarr, NULL);
+}
+
 UTEST_MAIN()

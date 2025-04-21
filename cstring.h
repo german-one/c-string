@@ -1,12 +1,12 @@
-#ifndef HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_1
-#define HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_1
+#ifndef HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_2
+#define HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_2
 /**
  * @copyright Copyright (c) 2025 Steffen Illhardt,
  *            Licensed under the MIT license
  *            ( https://opensource.org/license/mit/ ).
  * @brief     cstring - Heap implemented using C library allocation functions.
  * @file      cstring.h
- * @version   1.1
+ * @version   1.2
  * @details
  *   The c-string library is based on the c-vector library,
  *   Copyright (c) 2015 Evan Teran,
@@ -86,7 +86,9 @@
  * @brief cstring_assign - Assign a string to a cstring.
  * @details Also see `cstring_init()`, `cstring_reserve()`,
  *         `cstring_push_back()`, `cstring_append()`, `cstring_resize()`.
- * @param str   - The cstring. Can be a NULL string.
+ * @param str   - The cstring. Can be a NULL string. <br>
+ *                If `str` refers to an existing cstring, the old content is
+ *                overwritten.
  * @param ptr   - Pointer to the first character assigned to the cstring.
  * @param count - Number of consecutive characters to be used.
  * @return void
@@ -626,8 +628,8 @@
             (ret_offset) = (ptrdiff_t)-1;                                                                                             \
         } else if (sub_size__ == str_size__) {                                                                                        \
             int eq__;                                                                                                                 \
-            str_n_eq_((str), (ptr), sub_size__, eq__);                                                                                \
-            (ret_offset) = eq__ ? (ptrdiff_t)0 : (ptrdiff_t)-1;                                                                       \
+            str_n_eq_((str) + (ptrdiff_t)(pos), (ptr), sub_size__, eq__);                                                             \
+            (ret_offset) = eq__ ? (ptrdiff_t)(pos) : (ptrdiff_t)-1;                                                                   \
         } else {                                                                                                                      \
             ptrdiff_t cs_off__;                                                                                                       \
             const ptrdiff_t end__ = sub_size__ - 1, cs_diff__ = (ptrdiff_t)cstring_size(str) - sub_size__;                            \
@@ -685,8 +687,8 @@
             (ret_offset) = (ptrdiff_t)-1;                                                                                              \
         } else if (sub_size___ == str_size___) {                                                                                       \
             int eq___;                                                                                                                 \
-            str_n_eq_((str), (ptr), sub_size___, eq___);                                                                               \
-            (ret_offset) = eq___ ? (ptrdiff_t)0 : (ptrdiff_t)-1;                                                                       \
+            str_n_eq_((str) + (ptrdiff_t)(pos), (ptr), sub_size___, eq___);                                                            \
+            (ret_offset) = eq___ ? (ptrdiff_t)(pos) : (ptrdiff_t)-1;                                                                   \
         } else {                                                                                                                       \
             ptrdiff_t cs_off___;                                                                                                       \
             const ptrdiff_t cs_diff___ = str_size___ - sub_size___;                                                                    \
@@ -900,6 +902,79 @@
             cstring_set_ttl_siz_((to), cs_count___ + 1);                                                                                     \
             (to)[cs_count___] = 0;                                                                                                           \
         }                                                                                                                                    \
+    } while (0)
+
+/* ------------------------- */
+/* --- vector of cstring --- */
+
+/**
+ * @brief cstring_array_type - The vector type of the data provided by
+ * `cstring_split()`.
+ * @param type - The character type of the strings in the vector.
+ */
+#define cstring_array_type(type) type **
+
+/**
+ * @brief cstring_array - Syntactic sugar to retrieve a vector type.
+ * @param type - The character type of the strings in the vector.
+ */
+#define cstring_array(type) cstring_string_type(type)
+
+/**
+ * @brief cstring_split - Tokenize a cstring into a cstring_array vector.
+ * @param str       - The cstring.
+ * @param max_tok   - Maximum number of tokens to be created. -1 specifies that
+ *                    all tokens are created.
+ * @param ptr       - Pointer to the first character of the delimiter string
+ *                    that separates the tokens in `str`.
+ * @param count     - Number of consecutive characters to be used as delimiter.
+ * @param ret_array - Variable of cstring_array(type) that receives the created
+ *                    vector. Can be a NULL vector. <br>
+ *                    If `ret_array` refers to an existing vector, the old
+ *                    content is overwritten.
+ * @return void
+ */
+#define cstring_split(str, max_tok, ptr, count, ret_array)                                              \
+    do {                                                                                                \
+        const void *const check__   = (const void *)(ptr);                                              \
+        const ptrdiff_t search_sz__ = (ptrdiff_t)(count);                                               \
+        if (ret_array) {                                                                                \
+            cstring_array_free(ret_array);                                                              \
+        }                                                                                               \
+        if ((str) && (max_tok) && (ptrdiff_t)(max_tok) > -2 && check__ && search_sz__ > 0) {            \
+            ptrdiff_t found__;                                                                          \
+            ptrdiff_t begin__            = 0;                                                           \
+            size_t s_cnt__               = 0;                                                           \
+            const size_t tok_minus_one__ = (size_t)(max_tok) - (size_t)1;                               \
+            cstring_grow_((ret_array), 64);                                                             \
+            cstring_set_ttl_siz_((ret_array), 1);                                                       \
+            cstring_find((str), begin__, (ptr), search_sz__, found__);                                  \
+            for (; found__ != -1 && s_cnt__ < tok_minus_one__; ++s_cnt__) {                             \
+                cstring_push_back((ret_array), NULL);                                                   \
+                cstring_assign((ret_array)[s_cnt__], (str) + begin__, found__ - begin__);               \
+                begin__ = found__ + search_sz__;                                                        \
+                cstring_find((str), begin__, (ptr), search_sz__, found__);                              \
+            }                                                                                           \
+            cstring_push_back((ret_array), NULL);                                                       \
+            cstring_assign((ret_array)[s_cnt__], (str) + begin__, cstring_size(str) - (size_t)begin__); \
+            (ret_array)[s_cnt__ + 1] = NULL;                                                            \
+        }                                                                                               \
+    } while (0)
+
+/**
+ * @brief cstring_array_free - Recursively free all memory associated with the
+ *        cstring_array and set it to NULL.
+ * @param str - The cstring_array. Can be a NULL vector.
+ * @return void
+ */
+#define cstring_array_free(arr)                         \
+    do {                                                \
+        const size_t strings___ = cstring_size(arr);    \
+        size_t string_i__       = 0;                    \
+        for (; string_i__ < strings___; ++string_i__) { \
+            cstring_free((arr)[string_i__]);            \
+        }                                               \
+        cstring_free(arr);                              \
     } while (0)
 
 /* ========================== */
