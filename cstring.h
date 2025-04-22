@@ -687,8 +687,8 @@
             (ret_offset) = (ptrdiff_t)-1;                                                                                              \
         } else if (sub_size___ == str_size___) {                                                                                       \
             int eq___;                                                                                                                 \
-            str_n_eq_((str) + (ptrdiff_t)(pos), (ptr), sub_size___, eq___);                                                            \
-            (ret_offset) = eq___ ? (ptrdiff_t)(pos) : (ptrdiff_t)-1;                                                                   \
+            str_n_eq_((str), (ptr), sub_size___, eq___);                                                                               \
+            (ret_offset) = eq___ ? (ptrdiff_t)0 : (ptrdiff_t)-1;                                                                       \
         } else {                                                                                                                       \
             ptrdiff_t cs_off___;                                                                                                       \
             const ptrdiff_t cs_diff___ = str_size___ - sub_size___;                                                                    \
