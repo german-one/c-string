@@ -630,6 +630,8 @@
             int eq__;                                                                                                                 \
             str_n_eq_((str) + (ptrdiff_t)(pos), (ptr), sub_size__, eq__);                                                             \
             (ret_offset) = eq__ ? (ptrdiff_t)(pos) : (ptrdiff_t)-1;                                                                   \
+        } else if (sub_size__ == 1) {                                                                                                 \
+            find_first_char_(0, (str), (pos), (ptr), (ret_offset));                                                                   \
         } else {                                                                                                                      \
             ptrdiff_t cs_off__;                                                                                                       \
             const ptrdiff_t end__ = sub_size__ - 1, cs_diff__ = (ptrdiff_t)cstring_size(str) - sub_size__;                            \
@@ -689,6 +691,8 @@
             int eq___;                                                                                                                 \
             str_n_eq_((str), (ptr), sub_size___, eq___);                                                                               \
             (ret_offset) = eq___ ? (ptrdiff_t)0 : (ptrdiff_t)-1;                                                                       \
+        } else if (sub_size___ == 1) {                                                                                                 \
+            find_last_char_(0, (str), (pos), (ptr), (ret_offset));                                                                     \
         } else {                                                                                                                       \
             ptrdiff_t cs_off___;                                                                                                       \
             const ptrdiff_t cs_diff___ = str_size___ - sub_size___;                                                                    \
@@ -1117,6 +1121,55 @@ typedef struct cstring_metadata_ {
     } while (0)
 
 /**
+ * @brief find_first_char_ - For internal use, find the first character equal or
+ *        not equal (depending on `not_eq`) to the character pointed to by
+ *        `pchar`.
+ * @param not_eq     - 0 to find the first occurrence that equals the character,
+ *                     1 to find the first occurrence that does not equal the
+ *                     character
+ * @param str        - The cstring.
+ * @param pos        - Position at which to begin searching.
+ * @param pchar      - Pointer to the character to search for.
+ * @param ret_offset - Variable of type `ptrdiff_t` that receives the position
+ *                     of the found character or -1 if no such character is
+ *                     found.
+ * @return void
+ */
+#define find_first_char_(not_eq, str, pos, pchar, ret_offset)                                              \
+    do {                                                                                                   \
+        for ((ret_offset) = (ptrdiff_t)(pos);                                                              \
+             (ret_offset) < (ptrdiff_t)cstring_size(str) && ((str)[(ret_offset)] == *(pchar)) == (not_eq); \
+             ++(ret_offset))                                                                               \
+            ;                                                                                              \
+        if ((ret_offset) == (ptrdiff_t)cstring_size(str)) {                                                \
+            (ret_offset) = (ptrdiff_t)-1;                                                                  \
+        }                                                                                                  \
+    } while (0)
+
+/**
+ * @brief find_last_char_ - For internal use, find the last character equal or
+ *        not equal (depending on `not_eq`) to the character pointed to by
+ *        `pchar`.
+ * @param not_eq     - 0 to find the first occurrence that equals the character,
+ *                     1 to find the first occurrence that does not equal the
+ *                     character
+ * @param str        - The cstring.
+ * @param pos        - Position at which to begin searching.
+ * @param pchar      - Pointer to the character to search for.
+ * @param ret_offset - Variable of type `ptrdiff_t` that receives the position
+ *                     of the found character or -1 if no such character is
+ *                     found.
+ * @return void
+ */
+#define find_last_char_(not_eq, str, pos, pchar, ret_offset)                                \
+    do {                                                                                    \
+        for ((ret_offset) = (ptrdiff_t)(pos);                                               \
+             (ret_offset) > (ptrdiff_t)-1 && ((str)[(ret_offset)] == *(pchar)) == (not_eq); \
+             --(ret_offset))                                                                \
+            ;                                                                               \
+    } while (0)
+
+/**
  * @brief make_charmask_ - For internal use, create a bit mask that helps to
  *        avoid the complexity of find_first_of_ and find_last_of_ being always
  *        O(n*m).
@@ -1161,6 +1214,8 @@ typedef struct cstring_metadata_ {
         const ptrdiff_t search_siz__ = (ptrdiff_t)(count), str_siz__ = (ptrdiff_t)cstring_size(str); \
         if (!chk__ || (ptrdiff_t)(pos) < 0 || str_siz__ <= (ptrdiff_t)(pos) || search_siz__ <= 0) {  \
             (ret_offset) = (ptrdiff_t)-1;                                                            \
+        } else if (search_siz__ == 1) {                                                              \
+            find_first_char_((not_of), (str), (pos), (ptr), (ret_offset));                           \
         } else {                                                                                     \
             size_t ch_mask__;                                                                        \
             ptrdiff_t search_off__;                                                                  \
@@ -1170,11 +1225,10 @@ typedef struct cstring_metadata_ {
                 if ((size_t)(str)[str_off__] & ch_mask__) {                                          \
                     continue;                                                                        \
                 }                                                                                    \
-                for (search_off__ = 0; search_off__ < search_siz__; ++search_off__) {                \
-                    if ((str)[str_off__] == (ptr)[search_off__]) {                                   \
-                        break;                                                                       \
-                    }                                                                                \
-                }                                                                                    \
+                for (search_off__ = 0;                                                               \
+                     search_off__ < search_siz__ && (str)[str_off__] != (ptr)[search_off__];         \
+                     ++search_off__)                                                                 \
+                    ;                                                                                \
                 if ((search_off__ == search_siz__) == (not_of)) {                                    \
                     break;                                                                           \
                 }                                                                                    \
@@ -1208,6 +1262,8 @@ typedef struct cstring_metadata_ {
                                             : (ptrdiff_t)(pos);                                                      \
         if (!chk___ || (ptrdiff_t)(pos) < -1 || str_off___ < 0 || search_siz___ <= 0) {                              \
             (ret_offset) = (ptrdiff_t)-1;                                                                            \
+        } else if (search_siz___ == 1) {                                                                             \
+            find_last_char_((not_of), (str), (pos), (ptr), (ret_offset));                                            \
         } else {                                                                                                     \
             size_t ch_mask___;                                                                                       \
             ptrdiff_t search_off___;                                                                                 \
@@ -1216,11 +1272,10 @@ typedef struct cstring_metadata_ {
                 if ((size_t)(str)[str_off___] & ch_mask___) {                                                        \
                     continue;                                                                                        \
                 }                                                                                                    \
-                for (search_off___ = 0; search_off___ < search_siz___; ++search_off___) {                            \
-                    if ((str)[str_off___] == (ptr)[search_off___]) {                                                 \
-                        break;                                                                                       \
-                    }                                                                                                \
-                }                                                                                                    \
+                for (search_off___ = 0;                                                                              \
+                     search_off___ < search_siz___ && (str)[str_off___] != (ptr)[search_off___];                     \
+                     ++search_off___)                                                                                \
+                    ;                                                                                                \
                 if ((search_off___ == search_siz___) == (not_of)) {                                                  \
                     break;                                                                                           \
                 }                                                                                                    \
