@@ -17,6 +17,11 @@
 /* === PUBLIC INTERFACE === */
 /* ======================== */
 
+/**
+ * @defgroup cstring_api The cstring API
+ * @{
+ */
+
 /* ------------- */
 /* --- types --- */
 
@@ -908,9 +913,16 @@
         }                                                                                                                                    \
     } while (0)
 
+/** @} */
+
 /* ========================== */
 /* === EXTENDED INTERFACE === */
 /* ========================== */
+
+/**
+ * @defgroup cstring_array_api The cstring_array API
+ * @{
+ */
 
 /* ------------------------- */
 /* --- vector of cstring --- */
@@ -1319,11 +1331,18 @@
         }                                                                                \
     } while (0)
 
+/** @} */
+
 /* ========================== */
 /* === INTERNAL INTERFACE === */
 /* ========================== */
 
 /** @cond INTERNAL */
+
+/**
+ * @defgroup internal_api The private API, for internal use only
+ * @{
+ */
 
 #include <limits.h>
 #include <stddef.h>
@@ -1645,6 +1664,8 @@ typedef struct cstring_metadata_ {
         }                                                                                      \
         cstring_set_ttl_cap_((str), (count));                                                  \
     } while (0)
+
+/** @} */
 
 /** @endcond */
 
