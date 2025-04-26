@@ -908,6 +908,10 @@
         }                                                                                                                                    \
     } while (0)
 
+/* ========================== */
+/* === EXTENDED INTERFACE === */
+/* ========================== */
+
 /* ------------------------- */
 /* --- vector of cstring --- */
 
@@ -922,7 +926,13 @@
  * @brief cstring_array - Syntactic sugar to retrieve a vector type.
  * @param type - The character type of the strings in the vector.
  */
-#define cstring_array(type) cstring_string_type(type)
+#define cstring_array(type) cstring_array_type(type)
+
+/**
+ * @brief cstring_array_iterator - The iterator type used for a vector.
+ * @param type - The character type of the strings in the vector.
+ */
+#define cstring_array_iterator(type) cstring_array_type(type)
 
 /**
  * @brief cstring_split - Tokenize a cstring into a cstring_array vector.
@@ -968,7 +978,7 @@
 /**
  * @brief cstring_array_free - Recursively free all memory associated with the
  *        cstring_array and set it to NULL.
- * @param str - The cstring_array. Can be a NULL vector.
+ * @param arr - The cstring_array. Can be a NULL vector.
  * @return void
  */
 #define cstring_array_free(arr)                         \
@@ -979,6 +989,334 @@
             cstring_free((arr)[string_i__]);            \
         }                                               \
         cstring_free(arr);                              \
+    } while (0)
+
+/**
+ * @brief cstring_array_at - Return the string pointer at position `pos` in
+ *        the cstring_array.
+ * @param arr - The cstring_array.
+ * @param pos - Position of a string in the vector.
+ * @return A string pointer at the specified position in the vector or NULL.
+ */
+#define cstring_array_at(arr, pos) \
+    (cstring_at((arr), (pos)) ? *cstring_at((arr), (pos)) : NULL)
+
+/**
+ * @brief cstring_array_front - Return the string pointer to the first string in
+ *        the cstring_array.
+ * @details Unlike member cstring_array_begin, which returns an iterator to this
+ *          same string, this function returns a direct string pointer.
+ * @param arr - The cstring_array.
+ * @return A string pointer to the first string in the vector or NULL.
+ */
+#define cstring_array_front(arr) \
+    (cstring_front(arr) ? *cstring_front(arr) : NULL)
+
+/**
+ * @brief cstring_array_back - Return the string pointer to the last string in
+ *        the cstring_array.
+ * @details Unlike member cstring_array_begin, which returns an iterator just
+ *          past this string, this function returns a direct string pointer.
+ * @param arr - The cstring_array.
+ * @return A string pointer to the last string in the vector or NULL.
+ */
+#define cstring_array_back(arr) \
+    (cstring_back(arr) ? *cstring_back(arr) : NULL)
+
+/**
+ * @brief cstring_array_begin - Return an iterator to first string of the
+ *        vector.
+ * @param arr - The cstring_array.
+ * @return A iterator to the first string (or NULL).
+ */
+#define cstring_array_begin(arr) \
+    cstring_begin(arr)
+
+/**
+ * @brief cstring_array_end - Return an iterator to one past the last string of
+ *        the vector.
+ * @param arr - The cstring_array.
+ * @return A pointer to one past the last string (or NULL).
+ */
+#define cstring_array_end(arr) \
+    cstring_end(arr)
+
+/**
+ * @brief cstring_array_empty - Return non-zero if the vector is empty.
+ * @param arr - The cstring_array. Can be a NULL vector.
+ * @return Non-zero if `arr` is NULL or empty, zero if non-empty.
+ */
+#define cstring_array_empty(arr) \
+    cstring_empty(arr)
+
+/**
+ * @brief cstring_array_size - Get the current length of the vector.
+ * @param arr - The cstring_array. Can be a NULL vector.
+ * @return The length as a `size_t`, terminating NULL not counted. Zero if `arr`
+ *         is NULL.
+ */
+#define cstring_array_size(arr) \
+    cstring_size(arr)
+
+/**
+ * @brief cstring_array_max_size - Get the maximum number of elements a vector
+ *        of strings of the specified character type is able to hold.
+ * @note The resulting value is technically possible. However, typically
+ *       allocations of such a big size will fail.
+ * @param type - The character type of strings in the vector to act on.
+ * @return The maximum number of elements the vector is able to hold.
+ */
+#define cstring_array_max_size(type) \
+    cstring_max_size(type *)
+
+/**
+ * @brief cstring_array_reserve - Request that the vector capacity be at least
+ *        enough to contain `n` strings.
+ * @details If `n` is greater than the current vector capacity, the function
+ *          causes the container to reallocate its storage increasing its
+ *          capacity to `n` (or greater).
+ * @param arr - The cstring_array. Can be a NULL vector.
+ * @param n   - Minimum capacity for the vector.
+ * @return void
+ */
+#define cstring_array_reserve(arr, n)                               \
+    do {                                                            \
+        const int is_new___ = ((arr) == NULL);                      \
+        if (is_new___ || cstring_ttl_cap_(arr) < (size_t)(n) + 1) { \
+            cstring_grow_((arr), (size_t)(n) + 1);                  \
+        }                                                           \
+        if (is_new___) {                                            \
+            cstring_set_ttl_siz_((arr), 1);                         \
+            (arr)[0] = NULL;                                        \
+        }                                                           \
+    } while (0)
+
+/**
+ * @brief cstring_array_capacity - Get the current capacity of the vector.
+ * @param arr - The cstring_array. Can be a NULL vector.
+ * @return The capacity as a `size_t`. Zero if `arr` is NULL.
+ */
+#define cstring_array_capacity(arr) \
+    cstring_capacity(arr)
+
+/**
+ * @brief cstring_array_shrink_to_fit - Request the container to reduce its
+ *        capacity to fit its size.
+ * @param arr - The cstring_array.
+ * @return void
+ */
+#define cstring_array_shrink_to_fit(arr) \
+    cstring_shrink_to_fit(arr)
+
+/**
+ * @brief cstring_array_clear - Erase all of the strings in the vector.
+ * @param arr - The cstring_array.
+ * @return void
+ */
+#define cstring_array_clear(arr)                               \
+    do {                                                       \
+        if (arr) {                                             \
+            const size_t strings____ = cstring_size(arr);      \
+            size_t string_i___       = 0;                      \
+            for (; string_i___ < strings____; ++string_i___) { \
+                cstring_free((arr)[string_i___]);              \
+            }                                                  \
+            cstring_set_ttl_siz_((arr), 1);                    \
+            (arr)[0] = NULL;                                   \
+        }                                                      \
+    } while (0)
+
+/**
+ * @brief cstring_array_insert - Insert a string at position `pos` into the
+ *        vector.
+ * @param arr   - The cstring_array.
+ * @param pos   - Position in the vector where the new string is inserted.
+ * @param ptr   - Pointer to the first character of the string inserted into the
+ *                cstring_array.
+ * @param count - Number of consecutive characters to be used.
+ * @return void
+ */
+#define cstring_array_insert(arr, pos, ptr, count)                                                                                              \
+    do {                                                                                                                                        \
+        if (arr) {                                                                                                                              \
+            const size_t new_ttl_sz___ = cstring_ttl_siz_(arr) + 1;                                                                             \
+            if (cstring_ttl_cap_(arr) < new_ttl_sz___) {                                                                                        \
+                cstring_grow_((arr), new_ttl_sz___);                                                                                            \
+            }                                                                                                                                   \
+            if ((size_t)(pos) < cstring_size(arr)) {                                                                                            \
+                cstring_clib_memmove((arr) + (size_t)(pos) + 1, (arr) + (size_t)(pos), sizeof(*(arr)) * ((cstring_size(arr)) - (size_t)(pos))); \
+            }                                                                                                                                   \
+            (arr)[(pos)] = NULL;                                                                                                                \
+            cstring_assign((arr)[(pos)], ptr, count);                                                                                           \
+            cstring_set_ttl_siz_((arr), new_ttl_sz___);                                                                                         \
+            (arr)[cstring_size(arr)] = NULL;                                                                                                    \
+        }                                                                                                                                       \
+    } while (0)
+
+/**
+ * @brief cstring_array_erase - Remove the strings beginning at offset `pos`
+ *        from the cstring_array.
+ * @param arr - The cstring_array.
+ * @param pos - Offset of the first string erased from the cstring_array.
+ * @param n   - Number of consecutive strings to be erased.
+ * @return void
+ */
+#define cstring_array_erase(arr, pos, n)                                                                                                                 \
+    do {                                                                                                                                                 \
+        if ((arr) && (size_t)(pos) < cstring_size(arr)) {                                                                                                \
+            const size_t cs_count____ = (size_t)(pos) + (size_t)(n) >= cstring_size(arr) ? cstring_size(arr) - (size_t)(pos) : (size_t)(n);              \
+            size_t arr_i__            = (size_t)(pos);                                                                                                   \
+            for (; arr_i__ < (size_t)(pos) + cs_count____; ++arr_i__) {                                                                                  \
+                cstring_free((arr)[arr_i__]);                                                                                                            \
+            }                                                                                                                                            \
+            cstring_set_ttl_siz_((arr), cstring_ttl_siz_(arr) - cs_count____);                                                                           \
+            cstring_clib_memmove((arr) + (size_t)(pos), (arr) + (size_t)(pos) + cs_count____, sizeof(*(arr)) * (cstring_ttl_siz_(arr) - (size_t)(pos))); \
+        }                                                                                                                                                \
+    } while (0)
+
+/**
+ * @brief cstring_array_push_back - Add a string to the end of the vector.
+ * @param arr   - The cstring_array. Can be a NULL vector.
+ * @param ptr   - Pointer to the first character of the string added to the
+ *                cstring_array.
+ * @param count - Number of consecutive characters to be used.
+ * @return void
+ */
+#define cstring_array_push_back(arr, ptr, count)                    \
+    do {                                                            \
+        size_t new_ttl_siz____;                                     \
+        if (!(arr)) {                                               \
+            cstring_grow_((arr), 2);                                \
+            cstring_set_ttl_siz_((arr), 1);                         \
+        }                                                           \
+        new_ttl_siz____ = cstring_ttl_siz_(arr) + 1;                \
+        if (cstring_ttl_cap_(arr) < new_ttl_siz____) {              \
+            cstring_grow_((arr), new_ttl_siz____);                  \
+        }                                                           \
+        cstring_set_ttl_siz_((arr), new_ttl_siz____);               \
+        (arr)[new_ttl_siz____ - 2] = NULL;                          \
+        cstring_assign((arr)[new_ttl_siz____ - 2], (ptr), (count)); \
+        (arr)[new_ttl_siz____ - 1] = NULL;                          \
+    } while (0)
+
+/**
+ * @brief cstring_array_pop_back - Remove the last string from the
+ *        cstring_array.
+ * @param arr - The cstring_array.
+ * @return void
+ */
+#define cstring_array_pop_back(arr)                         \
+    do {                                                    \
+        if (cstring_size(arr)) {                            \
+            cstring_set_ttl_siz_((arr), cstring_size(arr)); \
+            cstring_free((arr)[cstring_size(arr)]);         \
+        }                                                   \
+    } while (0)
+
+/**
+ * @brief cstring_array_copy - Copy a cstring_array.
+ * @param from - The original cstring_array.
+ * @param to   - Destination to which the cstring_array is copied. Can be a NULL
+ *               vector.
+ * @return void
+ */
+#define cstring_array_copy(from, to)                                    \
+    do {                                                                \
+        if (from) {                                                     \
+            const size_t from_ttl_sz___ = cstring_ttl_siz_(from);       \
+            size_t string_i____         = 0;                            \
+            if (to) {                                                   \
+                cstring_array_free(to);                                 \
+            }                                                           \
+            cstring_grow_((to), from_ttl_sz___);                        \
+            for (; string_i____ < from_ttl_sz___ - 1; ++string_i____) { \
+                (to)[string_i____] = NULL;                              \
+                cstring_copy((from)[string_i____], (to)[string_i____]); \
+            }                                                           \
+            (to)[string_i____] = NULL;                                  \
+            cstring_set_ttl_siz_((to), from_ttl_sz___);                 \
+        }                                                               \
+    } while (0)
+
+/**
+ * @brief cstring_array_resize - Resize the container to contain `count`
+ *          strings.
+ * @param arr   - The cstring_array. Can be a NULL vector.
+ * @param n     - New size of the cstring_array.
+ * @param ptr   - Pointer to the first character of the strings added if the
+ *                container grows.
+ * @param count - Number of consecutive characters to be used.
+ * @return void
+ */
+#define cstring_array_resize(arr, n, ptr, count)                  \
+    do {                                                          \
+        const size_t cs_sz_count___ = (size_t)(n);                \
+        size_t cs_sz____            = cstring_size(arr);          \
+        if (cs_sz_count___ > cs_sz____) {                         \
+            cstring_grow_((arr), cs_sz_count___ + 1);             \
+            do {                                                  \
+                (arr)[cs_sz____] = NULL;                          \
+                cstring_assign((arr)[cs_sz____], (ptr), (count)); \
+            } while (++cs_sz____ < cs_sz_count___);               \
+            (arr)[cs_sz____] = NULL;                              \
+        } else if (cs_sz_count___ < cs_sz____) {                  \
+            while (cs_sz____-- > cs_sz_count___) {                \
+                cstring_free(arr[cs_sz____]);                     \
+            }                                                     \
+        }                                                         \
+        cstring_set_ttl_siz_((arr), cs_sz_count___ + 1);          \
+    } while (0)
+
+/**
+ * @brief cstring_array_swap - Exchange the content of the cstring_array by the
+ *        content of another cstring_array of the same type.
+ * @param arr   - The cstring_array. Can be a NULL vector.
+ * @param other - The other cstring_array to swap content with. Can be a NULL
+ *                vector.
+ * @return void
+ */
+#define cstring_array_swap(arr, other) \
+    cstring_swap((arr), (other))
+
+/**
+ * @brief cstring_array_join - Concatenate the strings of a vector using the
+ *        specified joiner.
+ * @param arr     - The cstring_array.
+ * @param ptr     - Pointer to the first character of the string joining the
+ *                  elements of the cstring_array. Can be NULL.
+ * @param count   - Number of consecutive characters to be used. Can be zero.
+ * @param ret_str - A cstring variable of the same character type as `arr` that
+ *                  receives the joined string. <br>
+ *                  If `ret_str` refers to an existing cstring, the old content
+ *                  is overwritten.
+ * @return void
+ */
+#define cstring_array_join(arr, ptr, count, ret_str)                                     \
+    do {                                                                                 \
+        const void *const check___ = (const void *)(ptr);                                \
+        const size_t arr_siz__     = cstring_size(arr);                                  \
+        if (arr_siz__) {                                                                 \
+            size_t arr_idx__;                                                            \
+            const size_t joiner_cnt__ = check___ ? (size_t)(count) : (size_t)0;          \
+            size_t str_siz__          = (arr_siz__ - 1) * joiner_cnt__;                  \
+            for (arr_idx__ = 0; arr_idx__ < arr_siz__; ++arr_idx__) {                    \
+                str_siz__ += cstring_size(arr[arr_idx__]);                               \
+            }                                                                            \
+            if (str_siz__ > cstring_capacity(ret_str)) {                                 \
+                cstring_free(ret_str);                                                   \
+                cstring_reserve((ret_str), str_siz__);                                   \
+            }                                                                            \
+            cstring_assign((ret_str), arr[0], cstring_size(arr[0]));                     \
+            for (arr_idx__ = 1; arr_idx__ < arr_siz__; ++arr_idx__) {                    \
+                if (joiner_cnt__) {                                                      \
+                    cstring_append((ret_str), (ptr), joiner_cnt__);                      \
+                }                                                                        \
+                cstring_append((ret_str), arr[arr_idx__], cstring_size(arr[arr_idx__])); \
+            }                                                                            \
+        } else {                                                                         \
+            cstring_reserve((ret_str), 0);                                               \
+            cstring_clear(str);                                                          \
+        }                                                                                \
     } while (0)
 
 /* ========================== */

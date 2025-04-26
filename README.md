@@ -1,6 +1,7 @@
 This is a type-safe, header-only implementation of a `std::basic_string`-like string in plain C code.  
 It can be considered an offshoot of the [c-vector](https://github.com/eteran/c-vector) library and is intended to be binary compatible with it. Many sequences of the `c-string` library essentially correspond to the `c-vector` library code. All credits go to [eteran](https://github.com/eteran) and contributors.  
 While the `c-vector` library implements macros to emulate methods of a `std::vector`, the `c-string` library is specialized for null-terminated strings of characters. Its macros emulate `std::basic_string` methods. A few additional features are implemented that don't have an equivalent for a `std::basic_string`.  
+The `cstring_array` API extension is for vectors of `cstring`. It supports tokenization (also known as `split`) and concatenation (also known as `join`).  
   
 Just like the `cvector`, a `cstring` is prefixed with metadata, in the tradition of a length-prefixed string implementation.  
 The members of the `cstring` metadata are found at the same offset as those of a `cvector`. They count all characters (incl. the terminating null) which makes a `cstring` _interchangeable_ with a `cvector` of the same set of consecutive characters. Unlike the `cvector` macros (and as is usual for strings) the `cstring` macros, which return size and capacity, do not count the string terminator.  
@@ -55,7 +56,7 @@ int main(void) {
 
 ```
   
-### API
+### cstring API
 
 | **std::basic_string** | **cstring** |
 | --------------------- | ----------- |
@@ -101,14 +102,40 @@ int main(void) {
 | [`found = str.contains(s)`](https://en.cppreference.com/w/cpp/string/basic_string/contains) | `cstring_ends_with(str, s, count, found)` |
 | [`to = from.substring(pos, count)`](https://en.cppreference.com/w/cpp/string/basic_string/substring) | `cstring_substring(from, pos, count, to)` |
   
-### Extended vector API  
-Support tokenization of a string.  
+----
+  
+### cstring_array API  
+A `cstring_array` is a NULL pointer-terminated vector of `cstring`.  
+The concept is similar to the vector of arguments in `int main(int argc, char *argv[])`. While `argv` is guaranteed to be NULL pointer-terminated, this terminator is not counted in `argc`.  
+Like a `cstring`, a `cstring_array` is a heap-allocated and metadata-prefixed object.  
   
 | **Macro** | **Description** |
 | --------- | --------------- |
 | `cstring_array_type(type) arr = NULL` | Declare a vector of `cstring` using the specified character type. |
-| `cstring_split(str, max_tok, ptr, count, ret_array)` | Tokenize `str` into a NULL-terminated vector of `cstring`. |
-| `cstring_array_free(arr)` | Recursively free all memory associated with the vector previously created by `cstring_split()`. |
+| `cstring_split(str, max_tok, ptr, count, ret_array)` | Tokenize `str` into a vector of `cstring`. |
+| `cstring_array_free(arr)` | Recursively free all memory associated with the vector. |
+| `cstring_array_at(arr, pos)` | Return the string pointer at position `pos` in the cstring_array. |
+| `cstring_array_front(arr)` | Return the string pointer to the first string in the cstring_array. |
+| `cstring_array_back(arr)` | Return the string pointer to the last string in the cstring_array. |
+| `cstring_array_begin(arr)` | Return an iterator to first string of the vector. |
+| `cstring_array_end(arr)` | Return an iterator to one past the last string of the vector. |
+| `cstring_array_empty(arr)` | Return non-zero if the vector is empty. |
+| `cstring_array_size(arr)` | Get the current length of the vector. |
+| `cstring_array_max_size(type)` | Get the maximum number of elements a vector of strings of the specified character type is able to hold. |
+| `cstring_array_reserve(arr, n)` | Request that the vector capacity be at least enough to contain `n` strings. |
+| `cstring_array_capacity(arr)` | Get the current capacity of the vector. |
+| `cstring_array_shrink_to_fit(arr)` | Request the container to reduce its capacity to fit its size. |
+| `cstring_array_clear(arr)` | Erase all of the strings in the vector. |
+| `cstring_array_insert(arr, pos, ptr, count)` | Insert a string at position `pos` into the vector. |
+| `cstring_array_erase(arr, pos, n)` | Remove the strings beginning at offset `pos` from the cstring_array. |
+| `cstring_array_push_back(arr, ptr, count)` | Add a string to the end of the vector. |
+| `cstring_array_pop_back(arr)` | Remove the last string from the cstring_array. |
+| `cstring_array_copy(from, to)` | Copy a cstring_array. |
+| `cstring_array_resize(arr, n, ptr, count)` | Resize the container to contain `count` strings. |
+| `cstring_array_swap(arr, other)` | Exchange the content of the cstring_array by the content of another cstring_array of the same type. |
+| `cstring_array_join(arr, ptr, count, ret_str)` | Concatenate the strings of a vector using the specified joiner. |
+  
+----
   
 Neil Henning's [unit test header](https://github.com/sheredom/utest.h) is used to verify the proper functionality of all API macros.  
   
