@@ -1,12 +1,12 @@
-#ifndef HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_2
-#define HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_2
+#ifndef HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_3
+#define HEADER_CSTRING_8C60CBA8_34A6_4EA3_94B1_A69444BA0B9C_1_3
 /**
  * @copyright Copyright (c) 2025 Steffen Illhardt,
  *            Licensed under the MIT license
  *            ( https://opensource.org/license/mit/ ).
  * @brief     cstring - Heap implemented using C library allocation functions.
  * @file      cstring.h
- * @version   1.2
+ * @version   1.3
  * @details
  *   The c-string library is based on the c-vector library,
  *   Copyright (c) 2015 Evan Teran,
