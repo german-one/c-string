@@ -56,6 +56,8 @@ int main(void) {
 
 ```
   
+----
+  
 ### cstring API
 
 | **std::basic_string** | **cstring** |
@@ -133,11 +135,14 @@ Like a `cstring`, a `cstring_array` is a heap-allocated and metadata-prefixed ob
 | `cstring_array_copy(from, to)` | Copy a cstring_array. |
 | `cstring_array_resize(arr, n, ptr, count)` | Resize the container to contain `count` strings. |
 | `cstring_array_swap(arr, other)` | Exchange the content of the cstring_array by the content of another cstring_array of the same type. |
+| `cstring_array_slice(from, pos, n, to)` | Copy a part of a vector. |
 | `cstring_array_join(arr, ptr, count, ret_str)` | Concatenate the strings of a vector using the specified joiner. |
   
 ----
   
 Neil Henning's [unit test header](https://github.com/sheredom/utest.h) is used to verify the proper functionality of all API macros.  
+  
+----
   
 [^1]: Initializes a NULL string. Nothing similar for `std::basic_string`.  
 [^2]: Declares a static cstring literal of `const type`. This is comparable with a C++20 `constexpr std::basic_string`.  

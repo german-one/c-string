@@ -1291,6 +1291,38 @@
     cstring_swap((arr), (other))
 
 /**
+ * @brief cstring_array_slice - Copy a part of a vector.
+ * @param from - The source vector.
+ * @param pos  - Position in the source vector where the part begins.
+ * @param n    - Number of consecutive strings to copy.
+ * @param to   - Destination to which the part is copied. Can be a NULL vector.
+ * @return void
+ */
+#define cstring_array_slice(from, pos, n, to)                                                                                         \
+    do {                                                                                                                              \
+        const size_t from_pos__ = (size_t)(pos);                                                                                      \
+        if ((from) && cstring_ttl_siz_(from) > from_pos__) {                                                                          \
+            const size_t to_count__ = from_pos__ + (size_t)(n) >= cstring_size(from) ? cstring_size(from) - from_pos__ : (size_t)(n); \
+            size_t to_idx__         = 0;                                                                                              \
+            if ((to) && cstring_ttl_cap_(to) < to_count__ + 1) {                                                                      \
+                cstring_array_free(to);                                                                                               \
+            }                                                                                                                         \
+            if (!(to)) {                                                                                                              \
+                cstring_grow_((to), to_count__ + 1);                                                                                  \
+                cstring_set_ttl_siz_((to), 1);                                                                                        \
+            } else {                                                                                                                  \
+                cstring_array_clear(to);                                                                                              \
+            }                                                                                                                         \
+            for (; to_idx__ < to_count__; ++to_idx__) {                                                                               \
+                (to)[to_idx__] = NULL;                                                                                                \
+                cstring_assign((to)[to_idx__], (from)[from_pos__ + to_idx__], cstring_size((from)[from_pos__ + to_idx__]));           \
+            }                                                                                                                         \
+            cstring_set_ttl_siz_((to), to_count__ + 1);                                                                               \
+            (to)[to_count__] = NULL;                                                                                                  \
+        }                                                                                                                             \
+    } while (0)
+
+/**
  * @brief cstring_array_join - Concatenate the strings of a vector using the
  *        specified joiner.
  * @param arr     - The cstring_array.

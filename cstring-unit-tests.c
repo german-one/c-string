@@ -1825,6 +1825,34 @@ UTEST(test, cstring_array_copy_resize_swap) {
     cstring_array_free(from);
 }
 
+UTEST(test, cstring_array_slice) {
+    cstring_string_type(char) str = NULL;
+    cstring_array_type(char) from = NULL;
+    cstring_array_type(char) to   = NULL;
+
+    cstring_assign(str, "aa;bb;cc;dd", 11);
+    cstring_split(str, -1, ";", 1, from);
+
+    cstring_free(str);
+
+    cstring_array_slice(from, 1, 2, to);
+    ASSERT_EQ(cstring_array_size(to), 2U);
+    ASSERT_STREQ(to[0], "bb");
+    ASSERT_STREQ(to[1], "cc");
+
+    cstring_array_slice(from, 0, 4, to);
+    ASSERT_EQ(cstring_array_size(to), 4U);
+    ASSERT_STREQ(to[0], "aa");
+    ASSERT_STREQ(to[3], "dd");
+
+    cstring_array_slice(from, 3, 100, to);
+    ASSERT_EQ(cstring_array_size(to), 1U);
+    ASSERT_STREQ(to[0], "dd");
+
+    cstring_array_free(to);
+    cstring_array_free(from);
+}
+
 UTEST(test, cstring_array_join) {
     cstring_string_type(char) str = NULL;
     cstring_array_type(char) arr  = NULL;
