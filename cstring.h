@@ -135,36 +135,32 @@
 /* --- element access --- */
 
 /**
- * @brief cstring_at - Return a reference to the character at position `pos` in
- *        the cstring.
+ * @brief cstring_at - Return the character at position `pos` in the cstring.
  * @param str - The cstring.
  * @param pos - Position of a character in the string.
- * @return A reference to the character at the specified position in the string.
+ * @return The ASCII value (as `int`) of the character at the specified position
+ *         in the string. If the macro fails, -1 is returned.
  */
 #define cstring_at(str, pos) \
-    ((size_t)(pos) < cstring_size(str) ? (str) + (size_t)(pos) : NULL)
+    ((size_t)(pos) < cstring_size(str) ? (int)((size_t)(str)[(size_t)(pos)] & get_typemask_(str)) : -1)
 
 /**
- * @brief cstring_front - Return a reference to the first character in the
- *        cstring.
- * @details Unlike member cstring_begin, which returns an iterator to this same
- *          character, this function returns a direct reference.
+ * @brief cstring_front - Return the first character in the cstring.
  * @param str - The cstring.
- * @return A reference to the first character in the cstring.
+ * @return The ASCII value (as `int`) of the first character in the string. If
+ *         the macro fails, -1 is returned.
  */
 #define cstring_front(str) \
-    (cstring_size(str) ? (str) : NULL)
+    (cstring_size(str) ? (int)((size_t)(str)[0] & get_typemask_(str)) : -1)
 
 /**
- * @brief cstring_back - Return a reference to the last character in the
- *        cstring.
- * @details Unlike member cstring_end, which returns an iterator just past this
- *          character, this function returns a direct reference.
+ * @brief cstring_back - Return the last character in the cstring.
  * @param str - The cstring.
- * @return A reference to the last character in the cstring.
+ * @return The ASCII value (as `int`) of the last character in the string. If
+ *         the macro fails, -1 is returned.
  */
 #define cstring_back(str) \
-    (cstring_size(str) ? (str) + cstring_size(str) - 1 : NULL)
+    (cstring_size(str) ? (int)((size_t)(str)[cstring_size(str) - 1] & get_typemask_(str)) : -1)
 
 /* ----------------- */
 /* --- iterators --- */
@@ -629,46 +625,46 @@
  *                     such substring is found.
  * @return void
  */
-#define cstring_find(str, pos, ptr, count, ret_offset)                                                                                \
-    do {                                                                                                                              \
-        const void *const tmp_ptr___ = (const void *)(ptr);                                                                           \
-        const ptrdiff_t sub_size__ = (ptrdiff_t)(count), str_size__ = (ptrdiff_t)cstring_size(str) - (ptrdiff_t)(pos);                \
-        if (!tmp_ptr___ || (ptrdiff_t)(pos) < 0 || sub_size__ > str_size__ || str_size__ <= 0 || sub_size__ <= 0) {                   \
-            (ret_offset) = (ptrdiff_t)-1;                                                                                             \
-        } else if (sub_size__ == str_size__) {                                                                                        \
-            int eq__;                                                                                                                 \
-            str_n_eq_((str) + (ptrdiff_t)(pos), (ptr), sub_size__, eq__);                                                             \
-            (ret_offset) = eq__ ? (ptrdiff_t)(pos) : (ptrdiff_t)-1;                                                                   \
-        } else if (sub_size__ == 1) {                                                                                                 \
-            find_first_char_(0, (str), (pos), (ptr), (ret_offset));                                                                   \
-        } else {                                                                                                                      \
-            ptrdiff_t cs_off__;                                                                                                       \
-            const ptrdiff_t end__ = sub_size__ - 1, cs_diff__ = (ptrdiff_t)cstring_size(str) - sub_size__;                            \
-            size_t str_hash__ = 0, sub_hash__ = 0, hash_factor__ = 1;                                                                 \
-            const size_t mask__ = (sizeof(size_t) <= sizeof(*(str))) ? (size_t)-1 : (((size_t)1 << (sizeof(*(str)) * CHAR_BIT)) - 1); \
-            (ret_offset)        = (ptrdiff_t)-1;                                                                                      \
-            for (cs_off__ = 0; cs_off__ < end__; ++cs_off__) {                                                                        \
-                str_hash__ = (str_hash__ << 1) + ((size_t)(str)[cs_off__ + (ptrdiff_t)(pos)] & mask__);                               \
-                sub_hash__ = (sub_hash__ << 1) + ((size_t)(ptr)[cs_off__] & mask__);                                                  \
-                hash_factor__ <<= 1;                                                                                                  \
-            }                                                                                                                         \
-            str_hash__ = (str_hash__ << 1) + ((size_t)(str)[cs_off__ + (ptrdiff_t)(pos)] & mask__);                                   \
-            sub_hash__ = (sub_hash__ << 1) + ((size_t)(ptr)[cs_off__] & mask__);                                                      \
-            cs_off__   = (ptrdiff_t)(pos);                                                                                            \
-            do {                                                                                                                      \
-                if (sub_hash__ == str_hash__) {                                                                                       \
-                    int eq__;                                                                                                         \
-                    str_n_eq_((str) + cs_off__, (ptr), sub_size__, eq__);                                                             \
-                    if (eq__) {                                                                                                       \
-                        (ret_offset) = cs_off__;                                                                                      \
-                        break;                                                                                                        \
-                    }                                                                                                                 \
-                }                                                                                                                     \
-                str_hash__ =                                                                                                          \
-                    ((str_hash__ - hash_factor__ * ((size_t)(str)[cs_off__] & mask__)) << 1) +                                        \
-                    ((size_t)(str)[cs_off__ + sub_size__] & mask__);                                                                  \
-            } while (cs_off__++ < cs_diff__);                                                                                         \
-        }                                                                                                                             \
+#define cstring_find(str, pos, ptr, count, ret_offset)                                                                 \
+    do {                                                                                                               \
+        const void *const tmp_ptr___ = (const void *)(ptr);                                                            \
+        const ptrdiff_t sub_size__ = (ptrdiff_t)(count), str_size__ = (ptrdiff_t)cstring_size(str) - (ptrdiff_t)(pos); \
+        if (!tmp_ptr___ || (ptrdiff_t)(pos) < 0 || sub_size__ > str_size__ || str_size__ <= 0 || sub_size__ <= 0) {    \
+            (ret_offset) = (ptrdiff_t)-1;                                                                              \
+        } else if (sub_size__ == str_size__) {                                                                         \
+            int eq__;                                                                                                  \
+            str_n_eq_((str) + (ptrdiff_t)(pos), (ptr), sub_size__, eq__);                                              \
+            (ret_offset) = eq__ ? (ptrdiff_t)(pos) : (ptrdiff_t)-1;                                                    \
+        } else if (sub_size__ == 1) {                                                                                  \
+            find_first_char_(0, (str), (pos), (ptr), (ret_offset));                                                    \
+        } else {                                                                                                       \
+            ptrdiff_t cs_off__;                                                                                        \
+            const ptrdiff_t end__ = sub_size__ - 1, cs_diff__ = (ptrdiff_t)cstring_size(str) - sub_size__;             \
+            size_t str_hash__ = 0, sub_hash__ = 0, hash_factor__ = 1;                                                  \
+            const size_t mask__ = get_typemask_(str);                                                                  \
+            (ret_offset)        = (ptrdiff_t)-1;                                                                       \
+            for (cs_off__ = 0; cs_off__ < end__; ++cs_off__) {                                                         \
+                str_hash__ = (str_hash__ << 1) + ((size_t)(str)[cs_off__ + (ptrdiff_t)(pos)] & mask__);                \
+                sub_hash__ = (sub_hash__ << 1) + ((size_t)(ptr)[cs_off__] & mask__);                                   \
+                hash_factor__ <<= 1;                                                                                   \
+            }                                                                                                          \
+            str_hash__ = (str_hash__ << 1) + ((size_t)(str)[cs_off__ + (ptrdiff_t)(pos)] & mask__);                    \
+            sub_hash__ = (sub_hash__ << 1) + ((size_t)(ptr)[cs_off__] & mask__);                                       \
+            cs_off__   = (ptrdiff_t)(pos);                                                                             \
+            do {                                                                                                       \
+                if (sub_hash__ == str_hash__) {                                                                        \
+                    int eq__;                                                                                          \
+                    str_n_eq_((str) + cs_off__, (ptr), sub_size__, eq__);                                              \
+                    if (eq__) {                                                                                        \
+                        (ret_offset) = cs_off__;                                                                       \
+                        break;                                                                                         \
+                    }                                                                                                  \
+                }                                                                                                      \
+                str_hash__ =                                                                                           \
+                    ((str_hash__ - hash_factor__ * ((size_t)(str)[cs_off__] & mask__)) << 1) +                         \
+                    ((size_t)(str)[cs_off__ + sub_size__] & mask__);                                                   \
+            } while (cs_off__++ < cs_diff__);                                                                          \
+        }                                                                                                              \
     } while (0)
 
 /**
@@ -687,50 +683,50 @@
  *                     such substring is found.
  * @return void
  */
-#define cstring_rfind(str, pos, ptr, count, ret_offset)                                                                                \
-    do {                                                                                                                               \
-        const void *const tmp_ptr____ = (const void *)(ptr);                                                                           \
-        const ptrdiff_t sub_size___   = (ptrdiff_t)(count);                                                                            \
-        const ptrdiff_t str_size___   = ((ptrdiff_t)(pos) == -1 || (ptrdiff_t)(pos) + sub_size___ > (ptrdiff_t)cstring_size(str))      \
-                                            ? (ptrdiff_t)cstring_size(str)                                                             \
-                                            : ((ptrdiff_t)(pos) + sub_size___);                                                        \
-        if (!tmp_ptr____ || (ptrdiff_t)(pos) < -1 || sub_size___ > str_size___ || !str_size___ || sub_size___ <= 0) {                  \
-            (ret_offset) = (ptrdiff_t)-1;                                                                                              \
-        } else if (sub_size___ == str_size___) {                                                                                       \
-            int eq___;                                                                                                                 \
-            str_n_eq_((str), (ptr), sub_size___, eq___);                                                                               \
-            (ret_offset) = eq___ ? (ptrdiff_t)0 : (ptrdiff_t)-1;                                                                       \
-        } else if (sub_size___ == 1) {                                                                                                 \
-            find_last_char_(0, (str), (pos), (ptr), (ret_offset));                                                                     \
-        } else {                                                                                                                       \
-            ptrdiff_t cs_off___;                                                                                                       \
-            const ptrdiff_t cs_diff___ = str_size___ - sub_size___;                                                                    \
-            size_t str_hash___ = 0, sub_hash___ = 0, hash_factor___ = 1;                                                               \
-            const size_t mask___ = (sizeof(size_t) <= sizeof(*(str))) ? (size_t)-1 : (((size_t)1 << (sizeof(*(str)) * CHAR_BIT)) - 1); \
-            (ret_offset)         = (ptrdiff_t)-1;                                                                                      \
-            for (cs_off___ = sub_size___ - 1; cs_off___; --cs_off___) {                                                                \
-                str_hash___ = (str_hash___ << 1) + ((size_t)(str)[cs_off___ + cs_diff___] & mask___);                                  \
-                sub_hash___ = (sub_hash___ << 1) + ((size_t)(ptr)[cs_off___] & mask___);                                               \
-                hash_factor___ <<= 1;                                                                                                  \
-            }                                                                                                                          \
-            str_hash___ = (str_hash___ << 1) + ((size_t)(str)[cs_off___ + cs_diff___] & mask___);                                      \
-            sub_hash___ = (sub_hash___ << 1) + ((size_t)(ptr)[cs_off___] & mask___);                                                   \
-            cs_off___   = cs_diff___;                                                                                                  \
-            do {                                                                                                                       \
-                if (sub_hash___ == str_hash___) {                                                                                      \
-                    int eq___;                                                                                                         \
-                    str_n_eq_((str) + cs_off___, (ptr), sub_size___, eq___);                                                           \
-                    if (eq___) {                                                                                                       \
-                        (ret_offset) = cs_off___;                                                                                      \
-                        break;                                                                                                         \
-                    }                                                                                                                  \
-                }                                                                                                                      \
-                --cs_off___;                                                                                                           \
-                str_hash___ =                                                                                                          \
-                    ((str_hash___ - hash_factor___ * ((size_t)(str)[cs_off___ + sub_size___] & mask___)) << 1) +                       \
-                    ((size_t)(str)[cs_off___] & mask___);                                                                              \
-            } while (cs_off___);                                                                                                       \
-        }                                                                                                                              \
+#define cstring_rfind(str, pos, ptr, count, ret_offset)                                                                           \
+    do {                                                                                                                          \
+        const void *const tmp_ptr____ = (const void *)(ptr);                                                                      \
+        const ptrdiff_t sub_size___   = (ptrdiff_t)(count);                                                                       \
+        const ptrdiff_t str_size___   = ((ptrdiff_t)(pos) == -1 || (ptrdiff_t)(pos) + sub_size___ > (ptrdiff_t)cstring_size(str)) \
+                                            ? (ptrdiff_t)cstring_size(str)                                                        \
+                                            : ((ptrdiff_t)(pos) + sub_size___);                                                   \
+        if (!tmp_ptr____ || (ptrdiff_t)(pos) < -1 || sub_size___ > str_size___ || !str_size___ || sub_size___ <= 0) {             \
+            (ret_offset) = (ptrdiff_t)-1;                                                                                         \
+        } else if (sub_size___ == str_size___) {                                                                                  \
+            int eq___;                                                                                                            \
+            str_n_eq_((str), (ptr), sub_size___, eq___);                                                                          \
+            (ret_offset) = eq___ ? (ptrdiff_t)0 : (ptrdiff_t)-1;                                                                  \
+        } else if (sub_size___ == 1) {                                                                                            \
+            find_last_char_(0, (str), (pos), (ptr), (ret_offset));                                                                \
+        } else {                                                                                                                  \
+            ptrdiff_t cs_off___;                                                                                                  \
+            const ptrdiff_t cs_diff___ = str_size___ - sub_size___;                                                               \
+            size_t str_hash___ = 0, sub_hash___ = 0, hash_factor___ = 1;                                                          \
+            const size_t mask___ = get_typemask_(str);                                                                            \
+            (ret_offset)         = (ptrdiff_t)-1;                                                                                 \
+            for (cs_off___ = sub_size___ - 1; cs_off___; --cs_off___) {                                                           \
+                str_hash___ = (str_hash___ << 1) + ((size_t)(str)[cs_off___ + cs_diff___] & mask___);                             \
+                sub_hash___ = (sub_hash___ << 1) + ((size_t)(ptr)[cs_off___] & mask___);                                          \
+                hash_factor___ <<= 1;                                                                                             \
+            }                                                                                                                     \
+            str_hash___ = (str_hash___ << 1) + ((size_t)(str)[cs_off___ + cs_diff___] & mask___);                                 \
+            sub_hash___ = (sub_hash___ << 1) + ((size_t)(ptr)[cs_off___] & mask___);                                              \
+            cs_off___   = cs_diff___;                                                                                             \
+            do {                                                                                                                  \
+                if (sub_hash___ == str_hash___) {                                                                                 \
+                    int eq___;                                                                                                    \
+                    str_n_eq_((str) + cs_off___, (ptr), sub_size___, eq___);                                                      \
+                    if (eq___) {                                                                                                  \
+                        (ret_offset) = cs_off___;                                                                                 \
+                        break;                                                                                                    \
+                    }                                                                                                             \
+                }                                                                                                                 \
+                --cs_off___;                                                                                                      \
+                str_hash___ =                                                                                                     \
+                    ((str_hash___ - hash_factor___ * ((size_t)(str)[cs_off___ + sub_size___] & mask___)) << 1) +                  \
+                    ((size_t)(str)[cs_off___] & mask___);                                                                         \
+            } while (cs_off___);                                                                                                  \
+        }                                                                                                                         \
     } while (0)
 
 /**
@@ -824,9 +820,7 @@
             if ((str1)[idx__] == (str2)[idx__]) {                                                                            \
                 (ret_order) = 0;                                                                                             \
             } else {                                                                                                         \
-                const size_t tp_mask__ = (sizeof(size_t) <= sizeof(*(str1)))                                                 \
-                                             ? (size_t)-1                                                                    \
-                                             : (((size_t)1 << (sizeof(*(str1)) * CHAR_BIT)) - 1);                            \
+                const size_t tp_mask__ = get_typemask_(str1);                                                                \
                 (ret_order)            = ((size_t)(str1)[idx__] & tp_mask__) < ((size_t)(str2)[idx__] & tp_mask__) ? -1 : 1; \
             }                                                                                                                \
         }                                                                                                                    \
@@ -1021,7 +1015,7 @@
  * @return A string pointer at the specified position in the vector or NULL.
  */
 #define cstring_array_at(arr, pos) \
-    (cstring_at((arr), (pos)) ? *cstring_at((arr), (pos)) : NULL)
+    ((size_t)(pos) < cstring_size(arr) ? (arr)[(size_t)(pos)] : NULL)
 
 /**
  * @brief cstring_array_front - Return the string pointer to the first string in
@@ -1032,7 +1026,7 @@
  * @return A string pointer to the first string in the vector or NULL.
  */
 #define cstring_array_front(arr) \
-    (cstring_front(arr) ? *cstring_front(arr) : NULL)
+    (cstring_size(arr) ? *(arr) : NULL)
 
 /**
  * @brief cstring_array_back - Return the string pointer to the last string in
@@ -1043,7 +1037,7 @@
  * @return A string pointer to the last string in the vector or NULL.
  */
 #define cstring_array_back(arr) \
-    (cstring_back(arr) ? *cstring_back(arr) : NULL)
+    (cstring_size(arr) ? (arr)[cstring_size(arr) - 1] : NULL)
 
 /**
  * @brief cstring_array_begin - Return an iterator to first string of the
@@ -1566,6 +1560,17 @@ typedef struct cstring_metadata_ {
              --(ret_offset))                                                                \
             ;                                                                               \
     } while (0)
+
+/**
+ * @brief get_typemask_ - For internal use, calculate the bit mask with all bits
+ *        of the size of the referenced character set.
+ * @details The value is considered a constant expression, calculated at compile
+ *          time.
+ * @param ptr - Pointer to a character.
+ * @return The calculated bit mask as value of type `size_t`.
+ */
+#define get_typemask_(ptr) \
+    ((sizeof(size_t) <= sizeof(*(ptr))) ? (size_t)-1 : (((size_t)1 << (sizeof(*(ptr)) * CHAR_BIT)) - 1))
 
 /**
  * @brief make_charmask_ - For internal use, create a bit mask that helps to

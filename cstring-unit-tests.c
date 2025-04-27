@@ -101,9 +101,9 @@ UTEST(test, cstring_at) {
     cstring_string_type(char) str = NULL;
     cstring_assign(str, literal, strlen_of(literal));
 
-    ASSERT_EQ(*cstring_at(str, 0), 'a');
-    ASSERT_EQ(*cstring_at(str, 4), 'e');
-    ASSERT_EQ(cstring_at(str, 5), NULL);
+    ASSERT_EQ((char)cstring_at(str, 0), 'a');
+    ASSERT_EQ((char)cstring_at(str, 4), 'e');
+    ASSERT_EQ(cstring_at(str, 5), -1);
 
     cstring_free(str);
 
@@ -112,19 +112,19 @@ UTEST(test, cstring_at) {
     cstring_string_type(wchar_t) wstr = NULL;
     cstring_assign(wstr, wliteral, strlen_of(wliteral));
 
-    ASSERT_EQ(*cstring_at(wstr, 0), L'a');
-    ASSERT_EQ(*cstring_at(wstr, 4), L'e');
-    ASSERT_EQ(cstring_at(wstr, 5), NULL);
+    ASSERT_EQ((wchar_t)cstring_at(wstr, 0), L'a');
+    ASSERT_EQ((wchar_t)cstring_at(wstr, 4), L'e');
+    ASSERT_EQ(cstring_at(wstr, 5), -1);
 
     cstring_free(wstr);
 
     /* -- special cases -- */
 
     cstring_string_type(char) nullstr = NULL;
-    ASSERT_EQ(cstring_at(nullstr, 0), NULL);
+    ASSERT_EQ(cstring_at(nullstr, 0), -1);
 
     cstring_init(zerolenstr, char);
-    ASSERT_EQ(cstring_at(zerolenstr, 0), NULL);
+    ASSERT_EQ(cstring_at(zerolenstr, 0), -1);
     cstring_free(zerolenstr);
 }
 
@@ -134,12 +134,12 @@ UTEST(test, cstring_front_back) {
     /* -- special cases -- */
 
     cstring_string_type(char) nullstr = NULL;
-    ASSERT_EQ(cstring_front(nullstr), NULL);
-    ASSERT_EQ(cstring_back(nullstr), NULL);
+    ASSERT_EQ(cstring_front(nullstr), -1);
+    ASSERT_EQ(cstring_back(nullstr), -1);
 
     cstring_init(zerolenstr, char);
-    ASSERT_EQ(cstring_front(zerolenstr), NULL);
-    ASSERT_EQ(cstring_back(zerolenstr), NULL);
+    ASSERT_EQ(cstring_front(zerolenstr), -1);
+    ASSERT_EQ(cstring_back(zerolenstr), -1);
     cstring_free(zerolenstr);
 }
 
@@ -347,8 +347,8 @@ UTEST(test, cstring_insert) {
 
     cstring_insert(str, 0, lit2, strlen_of(lit2));
     ASSERT_EQ(cstring_size(str), 10U);
-    ASSERT_EQ(*cstring_front(str), '2');
-    ASSERT_EQ(*cstring_back(str), '3');
+    ASSERT_EQ((char)cstring_front(str), '2');
+    ASSERT_EQ((char)cstring_back(str), '3');
     ASSERT_STREQ(str, "2301234523");
 
     cstring_free(str);
@@ -370,8 +370,8 @@ UTEST(test, cstring_insert) {
 
     cstring_insert(wstr, 0, wlit2, strlen_of(wlit2));
     ASSERT_EQ(cstring_size(wstr), 10U);
-    ASSERT_EQ(*cstring_front(wstr), L'2');
-    ASSERT_EQ(*cstring_back(wstr), L'3');
+    ASSERT_EQ((wchar_t)cstring_front(wstr), L'2');
+    ASSERT_EQ((wchar_t)cstring_back(wstr), L'3');
     ASSERT_TRUE(wcseq(wstr, L"2301234523"));
 
     cstring_free(wstr);
