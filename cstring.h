@@ -272,7 +272,7 @@
     do {                                                   \
         if (str) {                                         \
             const size_t cs_sz___ = cstring_ttl_siz_(str); \
-            cstring_grow_(str, cs_sz___);                  \
+            cstring_grow_((str), cs_sz___);                \
         }                                                  \
     } while (0)
 
@@ -352,13 +352,15 @@
  * @param n   - Number of consecutive characters to be erased.
  * @return void
  */
-#define cstring_erase(str, pos, n)                                                                                                                     \
-    do {                                                                                                                                               \
-        if ((size_t)(pos) + 1 <= cstring_ttl_siz_(str)) {                                                                                              \
-            const size_t cs_count__ = (size_t)(pos) + (size_t)(n) >= cstring_size(str) ? cstring_size(str) - (size_t)(pos) : (size_t)(n);              \
-            cstring_set_ttl_siz_((str), cstring_ttl_siz_(str) - cs_count__);                                                                           \
-            cstring_clib_memmove((str) + (size_t)(pos), (str) + (size_t)(pos) + cs_count__, sizeof(*(str)) * (cstring_ttl_siz_(str) - (size_t)(pos))); \
-        }                                                                                                                                              \
+#define cstring_erase(str, pos, n)                                                                                                           \
+    do {                                                                                                                                     \
+        size_t ttl_s_siz__ = cstring_ttl_siz_(str);                                                                                          \
+        if ((size_t)(pos) + 1 <= ttl_s_siz__) {                                                                                              \
+            const size_t cs_count__ = (size_t)(pos) + (size_t)(n) >= cstring_size(str) ? cstring_size(str) - (size_t)(pos) : (size_t)(n);    \
+            ttl_s_siz__ -= cs_count__;                                                                                                       \
+            cstring_set_ttl_siz_((str), ttl_s_siz__);                                                                                        \
+            cstring_clib_memmove((str) + (size_t)(pos), (str) + (size_t)(pos) + cs_count__, sizeof(*(str)) * (ttl_s_siz__ - (size_t)(pos))); \
+        }                                                                                                                                    \
     } while (0)
 
 /**
@@ -502,11 +504,11 @@
  * @param other - The other cstring to swap content with. Can be a NULL string.
  * @return void
  */
-#define cstring_swap(str, other)       \
-    do {                               \
-        void *cs_swap__ = (void *)str; \
-        str             = other;       \
-        other           = cs_swap__;   \
+#define cstring_swap(str, other)         \
+    do {                                 \
+        void *cs_swap__ = (void *)(str); \
+        (str)           = (other);       \
+        (other)         = cs_swap__;     \
     } while (0)
 
 /**
@@ -570,7 +572,8 @@
 #define cstring_fix(str, length, value, mode)                                                                                          \
     do {                                                                                                                               \
         if ((str) && (ptrdiff_t)(length) >= 0) {                                                                                       \
-            ptrdiff_t cs_diff__ = (ptrdiff_t)((size_t)(length) - (cstring_size(str)));                                                 \
+            const size_t str_siz___   = cstring_size(str);                                                                             \
+            const ptrdiff_t cs_diff__ = (ptrdiff_t)(length) - (ptrdiff_t)str_siz___;                                                   \
             if (cs_diff__) {                                                                                                           \
                 const int mode_head___     = (int)((mode) & 1);                                                                        \
                 const int mode_tail___     = (int)((mode) & 2);                                                                        \
@@ -583,13 +586,13 @@
                     }                                                                                                                  \
                     if (mode_head___ && head_len__) {                                                                                  \
                         ptrdiff_t n__ = 0;                                                                                             \
-                        cstring_clib_memmove((str) + head_len__, (str), cstring_size(str) * sizeof(*(str)));                           \
+                        cstring_clib_memmove((str) + head_len__, (str), str_siz___ * sizeof(*(str)));                                  \
                         while (n__ < head_len__) {                                                                                     \
                             (str)[n__++] = (value);                                                                                    \
                         }                                                                                                              \
                     }                                                                                                                  \
                     if (mode_tail___) {                                                                                                \
-                        ptrdiff_t n__       = head_len__ + (ptrdiff_t)cstring_size(str);                                               \
+                        ptrdiff_t n__       = head_len__ + (ptrdiff_t)str_siz___;                                                      \
                         const ptrdiff_t e__ = (ptrdiff_t)(length);                                                                     \
                         while (n__ < e__) {                                                                                            \
                             (str)[n__++] = (value);                                                                                    \
@@ -640,47 +643,15 @@
  *                     such substring is found.
  * @return void
  */
-#define cstring_find(str, pos, ptr, count, ret_offset)                                                                 \
-    do {                                                                                                               \
-        const void *const tmp_ptr___ = (const void *)(ptr);                                                            \
-        const ptrdiff_t sub_size__ = (ptrdiff_t)(count), str_size__ = (ptrdiff_t)cstring_size(str) - (ptrdiff_t)(pos); \
-        if (!tmp_ptr___ || (ptrdiff_t)(pos) < 0 || sub_size__ > str_size__ || str_size__ <= 0 || sub_size__ <= 0) {    \
-            (ret_offset) = (ptrdiff_t)-1;                                                                              \
-        } else if (sub_size__ == str_size__) {                                                                         \
-            int eq__;                                                                                                  \
-            str_n_eq_((str) + (ptrdiff_t)(pos), (ptr), sub_size__, eq__);                                              \
-            (ret_offset) = eq__ ? (ptrdiff_t)(pos) : (ptrdiff_t)-1;                                                    \
-        } else if (sub_size__ == 1) {                                                                                  \
-            find_first_char_(0, (str), (pos), (ptr), (ret_offset));                                                    \
-        } else {                                                                                                       \
-            ptrdiff_t cs_off__;                                                                                        \
-            const ptrdiff_t end__ = sub_size__ - 1, cs_diff__ = (ptrdiff_t)cstring_size(str) - sub_size__;             \
-            size_t str_hash__ = 0, sub_hash__ = 0, hash_factor__ = 1;                                                  \
-            const size_t mask__ = get_typemask_(str);                                                                  \
-            (ret_offset)        = (ptrdiff_t)-1;                                                                       \
-            for (cs_off__ = 0; cs_off__ < end__; ++cs_off__) {                                                         \
-                str_hash__ = (str_hash__ << 1) + ((size_t)(str)[cs_off__ + (ptrdiff_t)(pos)] & mask__);                \
-                sub_hash__ = (sub_hash__ << 1) + ((size_t)(ptr)[cs_off__] & mask__);                                   \
-                hash_factor__ <<= 1;                                                                                   \
-            }                                                                                                          \
-            str_hash__ = (str_hash__ << 1) + ((size_t)(str)[cs_off__ + (ptrdiff_t)(pos)] & mask__);                    \
-            sub_hash__ = (sub_hash__ << 1) + ((size_t)(ptr)[cs_off__] & mask__);                                       \
-            cs_off__   = (ptrdiff_t)(pos);                                                                             \
-            do {                                                                                                       \
-                if (sub_hash__ == str_hash__) {                                                                        \
-                    int eq__;                                                                                          \
-                    str_n_eq_((str) + cs_off__, (ptr), sub_size__, eq__);                                              \
-                    if (eq__) {                                                                                        \
-                        (ret_offset) = cs_off__;                                                                       \
-                        break;                                                                                         \
-                    }                                                                                                  \
-                }                                                                                                      \
-                str_hash__ =                                                                                           \
-                    ((str_hash__ - hash_factor__ * ((size_t)(str)[cs_off__] & mask__)) << 1) +                         \
-                    ((size_t)(str)[cs_off__ + sub_size__] & mask__);                                                   \
-            } while (cs_off__++ < cs_diff__);                                                                          \
-        }                                                                                                              \
-    } while (0)
+#define cstring_find(str, pos, ptr, count, ret_offset)                       \
+    do {                                                                     \
+        const void *const tmp_ptr_____ = (const void *)(ptr);                \
+        size_t sub_hs__                = 0;                                  \
+        if (tmp_ptr_____ && (ptrdiff_t)(count) > 1) {                        \
+            make_find_sub_hash_((ptr), (ptrdiff_t)(count), sub_hs__);        \
+        }                                                                    \
+        cstring_find_((str), (pos), (ptr), (count), sub_hs__, (ret_offset)); \
+    } while (0);
 
 /**
  * @brief cstring_rfind - Find the last occurrence of the given substring.
@@ -758,7 +729,7 @@
  * @return void
  */
 #define cstring_find_first_of(str, pos, ptr, count, ret_offset) \
-    find_first_of_(0, str, pos, ptr, count, ret_offset)
+    find_first_of_(0, (str), (pos), (ptr), (count), (ret_offset))
 
 /**
  * @brief cstring_find_first_not_of - Find the first character equal to none of
@@ -774,7 +745,7 @@
  * @return void
  */
 #define cstring_find_first_not_of(str, pos, ptr, count, ret_offset) \
-    find_first_of_(1, str, pos, ptr, count, ret_offset)
+    find_first_of_(1, (str), (pos), (ptr), (count), (ret_offset))
 
 /**
  * @brief cstring_find_last_of - Find the last character equal to one of the
@@ -791,7 +762,7 @@
  * @return void
  */
 #define cstring_find_last_of(str, pos, ptr, count, ret_offset) \
-    find_last_of_(0, str, pos, ptr, count, ret_offset)
+    find_last_of_(0, (str), (pos), (ptr), (count), (ret_offset))
 
 /**
  * @brief cstring_find_last_not_of - Find the last character equal to none of
@@ -808,7 +779,7 @@
  * @return void
  */
 #define cstring_find_last_not_of(str, pos, ptr, count, ret_offset) \
-    find_last_of_(1, str, pos, ptr, count, ret_offset)
+    find_last_of_(1, (str), (pos), (ptr), (count), (ret_offset))
 
 /* ------------------ */
 /* --- operations --- */
@@ -986,15 +957,19 @@
             ptrdiff_t found__;                                                                          \
             ptrdiff_t begin__            = 0;                                                           \
             size_t s_cnt__               = 0;                                                           \
+            size_t sub_hs___             = 0;                                                           \
             const size_t tok_minus_one__ = (size_t)(max_tok) - (size_t)1;                               \
             cstring_array_reserve((ret_array), 63);                                                     \
             cstring_set_ttl_siz_((ret_array), 1);                                                       \
-            cstring_find((str), begin__, (ptr), search_sz__, found__);                                  \
+            if (search_sz__ > 1) {                                                                      \
+                make_find_sub_hash_((ptr), search_sz__, sub_hs___);                                     \
+            }                                                                                           \
+            cstring_find_((str), begin__, (ptr), search_sz__, sub_hs___, found__);                      \
             for (; found__ != -1 && s_cnt__ < tok_minus_one__; ++s_cnt__) {                             \
                 cstring_push_back((ret_array), NULL);                                                   \
                 cstring_assign((ret_array)[s_cnt__], (str) + begin__, found__ - begin__);               \
                 begin__ = found__ + search_sz__;                                                        \
-                cstring_find((str), begin__, (ptr), search_sz__, found__);                              \
+                cstring_find_((str), begin__, (ptr), search_sz__, sub_hs___, found__);                  \
             }                                                                                           \
             cstring_push_back((ret_array), NULL);                                                       \
             cstring_assign((ret_array)[s_cnt__], (str) + begin__, cstring_size(str) - (size_t)begin__); \
@@ -1008,14 +983,14 @@
  * @param arr - The cstring_array. Can be a NULL vector.
  * @return void
  */
-#define cstring_array_free(arr)                         \
-    do {                                                \
-        const size_t strings___ = cstring_size(arr);    \
-        size_t string_i__       = 0;                    \
-        for (; string_i__ < strings___; ++string_i__) { \
-            cstring_free((arr)[string_i__]);            \
-        }                                               \
-        cstring_free(arr);                              \
+#define cstring_array_free(arr)                                            \
+    do {                                                                   \
+        const size_t strings___ = cstring_size(arr);                       \
+        size_t string_i__       = 0;                                       \
+        for (; string_i__ < strings___; ++string_i__) {                    \
+            cstring_clib_free(cstring_string_to_base_((arr)[string_i__])); \
+        }                                                                  \
+        cstring_free(arr);                                                 \
     } while (0)
 
 /**
@@ -1131,17 +1106,17 @@
  * @param arr - The cstring_array.
  * @return void
  */
-#define cstring_array_clear(arr)                               \
-    do {                                                       \
-        if (arr) {                                             \
-            const size_t strings____ = cstring_size(arr);      \
-            size_t string_i___       = 0;                      \
-            for (; string_i___ < strings____; ++string_i___) { \
-                cstring_free((arr)[string_i___]);              \
-            }                                                  \
-            cstring_set_ttl_siz_((arr), 1);                    \
-            (arr)[0] = NULL;                                   \
-        }                                                      \
+#define cstring_array_clear(arr)                                                \
+    do {                                                                        \
+        if (arr) {                                                              \
+            const size_t strings____ = cstring_size(arr);                       \
+            size_t string_i___       = 0;                                       \
+            for (; string_i___ < strings____; ++string_i___) {                  \
+                cstring_clib_free(cstring_string_to_base_((arr)[string_i___])); \
+            }                                                                   \
+            cstring_set_ttl_siz_((arr), 1);                                     \
+            (arr)[0] = NULL;                                                    \
+        }                                                                       \
     } while (0)
 
 /**
@@ -1165,7 +1140,7 @@
                 cstring_clib_memmove((arr) + (size_t)(pos) + 1, (arr) + (size_t)(pos), sizeof(*(arr)) * (new_ttl_sz___ - 2 - (size_t)(pos))); \
             }                                                                                                                                 \
             (arr)[(pos)] = NULL;                                                                                                              \
-            cstring_assign((arr)[(pos)], ptr, count);                                                                                         \
+            cstring_assign((arr)[(pos)], (ptr), (count));                                                                                     \
             cstring_set_ttl_siz_((arr), new_ttl_sz___);                                                                                       \
             (arr)[new_ttl_sz___ - 1] = NULL;                                                                                                  \
         }                                                                                                                                     \
@@ -1179,17 +1154,19 @@
  * @param n   - Number of consecutive strings to be erased.
  * @return void
  */
-#define cstring_array_erase(arr, pos, n)                                                                                                                 \
-    do {                                                                                                                                                 \
-        if ((size_t)(pos) + 1 <= cstring_ttl_siz_(arr)) {                                                                                                \
-            const size_t cs_count____ = (size_t)(pos) + (size_t)(n) >= cstring_size(arr) ? cstring_size(arr) - (size_t)(pos) : (size_t)(n);              \
-            size_t arr_i__            = (size_t)(pos);                                                                                                   \
-            for (; arr_i__ < (size_t)(pos) + cs_count____; ++arr_i__) {                                                                                  \
-                cstring_free((arr)[arr_i__]);                                                                                                            \
-            }                                                                                                                                            \
-            cstring_set_ttl_siz_((arr), cstring_ttl_siz_(arr) - cs_count____);                                                                           \
-            cstring_clib_memmove((arr) + (size_t)(pos), (arr) + (size_t)(pos) + cs_count____, sizeof(*(arr)) * (cstring_ttl_siz_(arr) - (size_t)(pos))); \
-        }                                                                                                                                                \
+#define cstring_array_erase(arr, pos, n)                                                                                                       \
+    do {                                                                                                                                       \
+        size_t ttl_a_siz__ = cstring_ttl_siz_(arr);                                                                                            \
+        if ((size_t)(pos) + 1 <= ttl_a_siz__) {                                                                                                \
+            const size_t cs_count____ = (size_t)(pos) + (size_t)(n) >= cstring_size(arr) ? cstring_size(arr) - (size_t)(pos) : (size_t)(n);    \
+            size_t arr_i__            = (size_t)(pos);                                                                                         \
+            for (; arr_i__ < (size_t)(pos) + cs_count____; ++arr_i__) {                                                                        \
+                cstring_clib_free(cstring_string_to_base_((arr)[arr_i__]));                                                                    \
+            }                                                                                                                                  \
+            ttl_a_siz__ -= cs_count____;                                                                                                       \
+            cstring_set_ttl_siz_((arr), ttl_a_siz__);                                                                                          \
+            cstring_clib_memmove((arr) + (size_t)(pos), (arr) + (size_t)(pos) + cs_count____, sizeof(*(arr)) * (ttl_a_siz__ - (size_t)(pos))); \
+        }                                                                                                                                      \
     } while (0)
 
 /**
@@ -1247,9 +1224,7 @@
         if (from) {                                                     \
             const size_t from_ttl_sz___ = cstring_ttl_siz_(from);       \
             size_t string_i____         = 0;                            \
-            if (to) {                                                   \
-                cstring_array_free(to);                                 \
-            }                                                           \
+            cstring_free(to);                                           \
             cstring_grow_((to), from_ttl_sz___);                        \
             for (; string_i____ < from_ttl_sz___ - 1; ++string_i____) { \
                 (to)[string_i____] = NULL;                              \
@@ -1270,23 +1245,23 @@
  * @param count - Number of consecutive characters to be used.
  * @return void
  */
-#define cstring_array_resize(arr, n, ptr, count)                  \
-    do {                                                          \
-        const size_t cs_sz_count___ = (size_t)(n);                \
-        size_t cs_sz____            = cstring_size(arr);          \
-        if (cs_sz_count___ > cs_sz____) {                         \
-            cstring_grow_((arr), cs_sz_count___ + 1);             \
-            do {                                                  \
-                (arr)[cs_sz____] = NULL;                          \
-                cstring_assign((arr)[cs_sz____], (ptr), (count)); \
-            } while (++cs_sz____ < cs_sz_count___);               \
-            (arr)[cs_sz____] = NULL;                              \
-        } else {                                                  \
-            while (cs_sz____-- > cs_sz_count___) {                \
-                cstring_free(arr[cs_sz____]);                     \
-            }                                                     \
-        }                                                         \
-        cstring_set_ttl_siz_((arr), cs_sz_count___ + 1);          \
+#define cstring_array_resize(arr, n, ptr, count)                              \
+    do {                                                                      \
+        const size_t cs_sz_count___ = (size_t)(n);                            \
+        size_t cs_sz____            = cstring_size(arr);                      \
+        if (cs_sz_count___ > cs_sz____) {                                     \
+            cstring_grow_((arr), cs_sz_count___ + 1);                         \
+            do {                                                              \
+                (arr)[cs_sz____] = NULL;                                      \
+                cstring_assign((arr)[cs_sz____], (ptr), (count));             \
+            } while (++cs_sz____ < cs_sz_count___);                           \
+        } else {                                                              \
+            while (cs_sz____-- > cs_sz_count___) {                            \
+                cstring_clib_free(cstring_string_to_base_((arr)[cs_sz____])); \
+            }                                                                 \
+        }                                                                     \
+        (arr)[cs_sz_count___] = NULL;                                         \
+        cstring_set_ttl_siz_((arr), cs_sz_count___ + 1);                      \
     } while (0)
 
 /**
@@ -1319,7 +1294,7 @@
             const size_t to_count__ = from_pos__ + (size_t)(n) >= cstring_size(from) ? cstring_size(from) - from_pos__ : (size_t)(n); \
             size_t to_idx__         = 0;                                                                                              \
             if ((to) && cstring_ttl_cap_(to) < to_count__ + 1) {                                                                      \
-                cstring_array_free(to);                                                                                               \
+                cstring_free(to);                                                                                                     \
             }                                                                                                                         \
             if (!(to)) {                                                                                                              \
                 cstring_grow_((to), to_count__ + 1);                                                                                  \
@@ -1347,31 +1322,37 @@
  *                  is overwritten.
  * @return void
  */
-#define cstring_array_join(arr, ptr, count, ret_str)                                                            \
-    do {                                                                                                        \
-        const void *const check___ = (const void *)(ptr);                                                       \
-        const size_t arr_siz__     = cstring_size(arr);                                                         \
-        if (arr_siz__) {                                                                                        \
-            size_t arr_idx__;                                                                                   \
-            const size_t joiner_cnt__ = check___ ? (size_t)(count) : (size_t)0;                                 \
-            size_t str_siz__          = (arr_siz__ - 1) * joiner_cnt__;                                         \
-            for (arr_idx__ = 0; arr_idx__ < arr_siz__; ++arr_idx__) {                                           \
-                str_siz__ += cstring_size(arr[arr_idx__]);                                                      \
-            }                                                                                                   \
-            if (str_siz__ > cstring_capacity(ret_str)) {                                                        \
-                cstring_free(ret_str);                                                                          \
-                cstring_grow_((ret_str), str_siz__ + 1);                                                        \
-            }                                                                                                   \
-            cstring_assign((ret_str), arr[0], cstring_size(arr[0]));                                            \
-            for (arr_idx__ = 1; arr_idx__ < arr_siz__; ++arr_idx__) {                                           \
-                if (joiner_cnt__) {                                                                             \
-                    cstring_insert((ret_str), cstring_size(ret_str), (ptr), joiner_cnt__);                      \
-                }                                                                                               \
-                cstring_insert((ret_str), cstring_size(ret_str), arr[arr_idx__], cstring_size(arr[arr_idx__])); \
-            }                                                                                                   \
-        } else {                                                                                                \
-            cstring_clear(ret_str);                                                                             \
-        }                                                                                                       \
+#define cstring_array_join(arr, ptr, count, ret_str)                                                \
+    do {                                                                                            \
+        const void *const check___ = (const void *)(ptr);                                           \
+        const size_t arr_siz__     = cstring_size(arr);                                             \
+        if (arr_siz__) {                                                                            \
+            size_t arr_idx__, l_el__, l_rs__;                                                       \
+            const size_t joiner_cnt__ = check___ ? (size_t)(count) : (size_t)0;                     \
+            size_t str_siz__          = (arr_siz__ - 1) * joiner_cnt__;                             \
+            for (arr_idx__ = 0; arr_idx__ < arr_siz__; ++arr_idx__) {                               \
+                str_siz__ += cstring_size((arr)[arr_idx__]);                                        \
+            }                                                                                       \
+            if (str_siz__ > cstring_capacity(ret_str)) {                                            \
+                cstring_free(ret_str);                                                              \
+                cstring_grow_((ret_str), str_siz__ + 1);                                            \
+            }                                                                                       \
+            l_rs__ = l_el__ = cstring_size((arr)[0]);                                               \
+            cstring_clib_memcpy((ret_str), (arr)[0], l_el__ * sizeof(*(ptr)));                      \
+            for (arr_idx__ = 1; arr_idx__ < arr_siz__; ++arr_idx__) {                               \
+                if (joiner_cnt__) {                                                                 \
+                    cstring_clib_memcpy((ret_str) + l_rs__, (ptr), joiner_cnt__ * sizeof(*(ptr)));  \
+                    l_rs__ += joiner_cnt__;                                                         \
+                }                                                                                   \
+                l_el__ = cstring_size((arr)[arr_idx__]);                                            \
+                cstring_clib_memcpy((ret_str) + l_rs__, (arr)[arr_idx__], l_el__ * sizeof(*(ptr))); \
+                l_rs__ += l_el__;                                                                   \
+            }                                                                                       \
+            cstring_set_ttl_siz_((ret_str), str_siz__ + 1);                                         \
+            (ret_str)[str_siz__] = 0;                                                               \
+        } else {                                                                                    \
+            cstring_clear(ret_str);                                                                 \
+        }                                                                                           \
     } while (0)
 
 /** @} */
@@ -1521,6 +1502,79 @@ typedef struct cstring_metadata_ {
     } while (0)
 
 /**
+ * @brief make_find_sub_hash_ - For internal use, pre-calculate the hash used
+ *                              for cstring_find_.
+ * @param ptr      - Pointer to the first character of the string to search for.
+ * @param count    - Length of the string to search for.
+ * @param ret_hash - Pre-calculated hash of the string to search for.
+ * @return void
+ */
+#define make_find_sub_hash_(ptr, count, ret_hash)                             \
+    do {                                                                      \
+        const size_t msk__ = get_typemask_(ptr);                              \
+        ptrdiff_t off___   = 0;                                               \
+        for (; off___ < (ptrdiff_t)(count); ++off___) {                       \
+            (ret_hash) = ((ret_hash) << 1) + ((size_t)(ptr)[off___] & msk__); \
+        }                                                                     \
+    } while (0)
+
+/**
+ * @brief cstring_find_ - For internal use, find the first occurrence of the
+ *                        given substring.
+ * @param str        - The cstring.
+ * @param pos        - Position at which to start the search, i.e. the found
+ *                     substring must not begin in a position preceding `pos`.
+ *                     Zero means that the whole `str` is searched.
+ * @param ptr        - Pointer to the first character of the string to search
+ *                     for.
+ * @param count      - Length of the string to search for.
+ * @param sub_hs     - Pre-calculated hash of the string to search for.
+ * @param ret_offset - Variable of type `ptrdiff_t` that receives the position
+ *                     of the first character of the found substring or -1 if no
+ *                     such substring is found.
+ * @return void
+ */
+#define cstring_find_(str, pos, ptr, count, sub_hs, ret_offset)                                                        \
+    do {                                                                                                               \
+        const void *const tmp_ptr___ = (const void *)(ptr);                                                            \
+        const ptrdiff_t sub_size__ = (ptrdiff_t)(count), str_size__ = (ptrdiff_t)cstring_size(str) - (ptrdiff_t)(pos); \
+        if (!tmp_ptr___ || (ptrdiff_t)(pos) < 0 || sub_size__ > str_size__ || str_size__ <= 0 || sub_size__ <= 0) {    \
+            (ret_offset) = (ptrdiff_t)-1;                                                                              \
+        } else if (sub_size__ == str_size__) {                                                                         \
+            int eq__;                                                                                                  \
+            str_n_eq_((str) + (ptrdiff_t)(pos), (ptr), sub_size__, eq__);                                              \
+            (ret_offset) = eq__ ? (ptrdiff_t)(pos) : (ptrdiff_t)-1;                                                    \
+        } else if (sub_size__ == 1) {                                                                                  \
+            find_first_char_(0, (str), (pos), (ptr), (ret_offset));                                                    \
+        } else {                                                                                                       \
+            ptrdiff_t cs_off__;                                                                                        \
+            const ptrdiff_t end__ = sub_size__ - 1, cs_diff__ = (ptrdiff_t)cstring_size(str) - sub_size__;             \
+            size_t str_hash__ = 0, hash_factor__ = 1;                                                                  \
+            const size_t mask__ = get_typemask_(str);                                                                  \
+            (ret_offset)        = (ptrdiff_t)-1;                                                                       \
+            for (cs_off__ = 0; cs_off__ < end__; ++cs_off__) {                                                         \
+                str_hash__ = (str_hash__ << 1) + ((size_t)(str)[cs_off__ + (ptrdiff_t)(pos)] & mask__);                \
+                hash_factor__ <<= 1;                                                                                   \
+            }                                                                                                          \
+            str_hash__ = (str_hash__ << 1) + ((size_t)(str)[cs_off__ + (ptrdiff_t)(pos)] & mask__);                    \
+            cs_off__   = (ptrdiff_t)(pos);                                                                             \
+            do {                                                                                                       \
+                if ((sub_hs) == str_hash__) {                                                                          \
+                    int eq__;                                                                                          \
+                    str_n_eq_((str) + cs_off__, (ptr), sub_size__, eq__);                                              \
+                    if (eq__) {                                                                                        \
+                        (ret_offset) = cs_off__;                                                                       \
+                        break;                                                                                         \
+                    }                                                                                                  \
+                }                                                                                                      \
+                str_hash__ =                                                                                           \
+                    ((str_hash__ - hash_factor__ * ((size_t)(str)[cs_off__] & mask__)) << 1) +                         \
+                    ((size_t)(str)[cs_off__ + sub_size__] & mask__);                                                   \
+            } while (cs_off__++ < cs_diff__);                                                                          \
+        }                                                                                                              \
+    } while (0)
+
+/**
  * @brief find_first_char_ - For internal use, find the first character equal or
  *        not equal (depending on `not_eq`) to the character pointed to by
  *        `pchar`.
@@ -1535,15 +1589,16 @@ typedef struct cstring_metadata_ {
  *                     found.
  * @return void
  */
-#define find_first_char_(not_eq, str, pos, pchar, ret_offset)                                              \
-    do {                                                                                                   \
-        for ((ret_offset) = (ptrdiff_t)(pos);                                                              \
-             (ret_offset) < (ptrdiff_t)cstring_size(str) && ((str)[(ret_offset)] == *(pchar)) == (not_eq); \
-             ++(ret_offset))                                                                               \
-            ;                                                                                              \
-        if ((ret_offset) == (ptrdiff_t)cstring_size(str)) {                                                \
-            (ret_offset) = (ptrdiff_t)-1;                                                                  \
-        }                                                                                                  \
+#define find_first_char_(not_eq, str, pos, pchar, ret_offset)                          \
+    do {                                                                               \
+        const ptrdiff_t str_sz__ = (ptrdiff_t)cstring_size(str);                       \
+        for ((ret_offset) = (ptrdiff_t)(pos);                                          \
+             (ret_offset) < str_sz__ && ((str)[(ret_offset)] == *(pchar)) == (not_eq); \
+             ++(ret_offset))                                                           \
+            ;                                                                          \
+        if ((ret_offset) == str_sz__) {                                                \
+            (ret_offset) = (ptrdiff_t)-1;                                              \
+        }                                                                              \
     } while (0)
 
 /**
@@ -1589,18 +1644,15 @@ typedef struct cstring_metadata_ {
  * @param chmask - Variable of type `size_t` that receives the created bit mask.
  * @return void
  */
-#define make_charmask_(ptr, count, chmask)                          \
-    do {                                                            \
-        const size_t type_mask__ =                                  \
-            (sizeof(size_t) <= sizeof(*(ptr)))                      \
-                ? (size_t)-1                                        \
-                : (((size_t)1 << (sizeof(*(ptr)) * CHAR_BIT)) - 1); \
-        ptrdiff_t ch_idx__ = 0;                                     \
-        (chmask)           = 0;                                     \
-        while (ch_idx__ < (count)) {                                \
-            (chmask) |= (size_t)(ptr)[ch_idx__++];                  \
-        }                                                           \
-        (chmask) = (~(chmask)) & type_mask__;                       \
+#define make_charmask_(ptr, count, chmask)             \
+    do {                                               \
+        const size_t type_mask__ = get_typemask_(ptr); \
+        ptrdiff_t ch_idx__       = 0;                  \
+        (chmask)                 = 0;                  \
+        while (ch_idx__ < (count)) {                   \
+            (chmask) |= (size_t)(ptr)[ch_idx__++];     \
+        }                                              \
+        (chmask) = (~(chmask)) & type_mask__;          \
     } while (0)
 
 /**
@@ -1704,19 +1756,18 @@ typedef struct cstring_metadata_ {
  */
 #define cstring_grow_(str, count)                                                              \
     do {                                                                                       \
-        const size_t cs_siz__ = (count) * sizeof(*(str)) + sizeof(cstring_metadata_t);         \
+        cstring_metadata_t *cs_p__;                                                            \
+        const size_t cs_siz__ = (size_t)(count) * sizeof(*(str)) + sizeof(cstring_metadata_t); \
         if (str) {                                                                             \
-            void *const cs_p__ = cstring_clib_realloc(cstring_string_to_base_(str), cs_siz__); \
+            cs_p__ = cstring_clib_realloc(cstring_string_to_base_(str), cs_siz__);             \
             cstring_clib_assert(cs_p__);                                                       \
-            (str) = cstring_base_to_string_(cs_p__);                                           \
         } else {                                                                               \
-            void *const cs_p__ = cstring_clib_malloc(cs_siz__);                                \
+            cs_p__ = cstring_clib_malloc(cs_siz__);                                            \
             cstring_clib_assert(cs_p__);                                                       \
-            (str) = cstring_base_to_string_(cs_p__);                                           \
-            cstring_set_ttl_siz_((str), 0);                                                    \
-            cstring_string_to_base_(str)->unused = NULL;                                       \
+            cs_p__->unused = NULL;                                                             \
         }                                                                                      \
-        cstring_set_ttl_cap_((str), (count));                                                  \
+        cs_p__->capacity = (size_t)(count);                                                    \
+        (str)            = cstring_base_to_string_(cs_p__);                                    \
     } while (0)
 
 /** @} */

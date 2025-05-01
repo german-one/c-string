@@ -11,7 +11,7 @@ static const wchar_t wliteral[] = L"abcde";
 #define wcseq(s1, s2) \
     (wcscmp((s1), (s2)) == 0)
 
-UTEST(test, cstring_literal) {
+UTEST(string, cstring_literal) {
     cstring_literal(lit, char, "abc");
     ASSERT_EQ(cstring_size(lit), 3U);
     ASSERT_EQ(cstring_capacity(lit), 3U);
@@ -25,7 +25,7 @@ UTEST(test, cstring_literal) {
     ASSERT_TRUE(wcseq(wlit, L"abc"));
 }
 
-UTEST(test, cstring_init) {
+UTEST(string, cstring_init) {
     cstring_init(str, char);
 
     ASSERT_NE(str, NULL);
@@ -45,7 +45,7 @@ UTEST(test, cstring_init) {
     cstring_free(wstr);
 }
 
-UTEST(test, cstring_assign_clear) {
+UTEST(string, cstring_assign_clear) {
     cstring_string_type(char) str = NULL;
 
     cstring_assign(str, literal + 1, 3);
@@ -97,7 +97,7 @@ UTEST(test, cstring_assign_clear) {
     cstring_free(wstr);
 }
 
-UTEST(test, cstring_at) {
+UTEST(string, cstring_at) {
     cstring_string_type(char) str = NULL;
     cstring_assign(str, literal, strlen_of(literal));
 
@@ -128,8 +128,8 @@ UTEST(test, cstring_at) {
     cstring_free(zerolenstr);
 }
 
-UTEST(test, cstring_front_back) {
-    /* see cstring_insert test for the typical use */
+UTEST(string, cstring_front_back) {
+    /* see cstring_insert string for the typical use */
 
     /* -- special cases -- */
 
@@ -143,7 +143,7 @@ UTEST(test, cstring_front_back) {
     cstring_free(zerolenstr);
 }
 
-UTEST(test, cstring_begin_end) {
+UTEST(string, cstring_begin_end) {
     cstring_string_type(char) str = NULL;
 
     cstring_assign(str, literal, strlen_of(literal));
@@ -186,8 +186,8 @@ UTEST(test, cstring_begin_end) {
     cstring_free(zerolenstr);
 }
 
-UTEST(test, cstring_empty) {
-    /* see cstring_erase test for the typical use */
+UTEST(string, cstring_empty) {
+    /* see cstring_erase string for the typical use */
 
     /* -- special cases -- */
 
@@ -195,7 +195,7 @@ UTEST(test, cstring_empty) {
     ASSERT_TRUE(cstring_empty(nullstr));
 }
 
-UTEST(test, cstring_size_length_capacity) {
+UTEST(string, cstring_size_length_capacity) {
     /* the typical use is found in more places, note that cstring_length is the same as cstring_size */
 
     /* -- special cases -- */
@@ -214,7 +214,7 @@ UTEST(test, cstring_size_length_capacity) {
     cstring_free(zerolenstr);
 }
 
-UTEST(test, cstring_max_size) {
+UTEST(string, cstring_max_size) {
     ASSERT_TRUE(cstring_max_size(char) && (cstring_max_size(char) & 1) == 0);
 
     /* -- wide string -- */
@@ -222,7 +222,7 @@ UTEST(test, cstring_max_size) {
     ASSERT_TRUE(cstring_max_size(wchar_t) && (cstring_max_size(wchar_t) & 1) == 0);
 }
 
-UTEST(test, cstring_reserve) {
+UTEST(string, cstring_reserve) {
     cstring_string_type(char) str = NULL;
 
     cstring_reserve(str, 10);
@@ -244,7 +244,7 @@ UTEST(test, cstring_reserve) {
     cstring_free(wstr);
 }
 
-UTEST(test, cstring_shrink_to_fit) {
+UTEST(string, cstring_shrink_to_fit) {
     cstring_string_type(char) str = NULL;
     cstring_assign(str, literal, strlen_of(literal));
 
@@ -294,7 +294,7 @@ static size_t unsafe_wbuffer_update(wchar_t *wbuffer, size_t wbuffer_size) {
     return to_copy;
 }
 
-UTEST(test, cstring_unsafe_set_size) {
+UTEST(string, cstring_unsafe_set_size) {
     size_t len;
     cstring_string_type(char) str = NULL;
 
@@ -331,7 +331,7 @@ UTEST(test, cstring_unsafe_set_size) {
     cstring_free(wstr);
 }
 
-UTEST(test, cstring_insert) {
+UTEST(string, cstring_insert) {
     static const char lit1[]      = "0145";
     static const char lit2[]      = "23";
     cstring_string_type(char) str = NULL;
@@ -391,7 +391,7 @@ UTEST(test, cstring_insert) {
     cstring_free(zerolenstr);
 }
 
-UTEST(test, cstring_erase) {
+UTEST(string, cstring_erase) {
     cstring_string_type(char) str = NULL;
 
     cstring_assign(str, literal, strlen_of(literal));
@@ -453,7 +453,7 @@ UTEST(test, cstring_erase) {
     cstring_free(wstr);
 }
 
-UTEST(test, cstring_push_back) {
+UTEST(string, cstring_push_back) {
     cstring_string_type(char) str = NULL;
     cstring_assign(str, literal, strlen_of(literal));
 
@@ -484,7 +484,7 @@ UTEST(test, cstring_push_back) {
     cstring_free(nullstr);
 }
 
-UTEST(test, cstring_pop_back) {
+UTEST(string, cstring_pop_back) {
     cstring_string_type(char) str = NULL;
     cstring_assign(str, literal, strlen_of(literal));
 
@@ -517,7 +517,7 @@ UTEST(test, cstring_pop_back) {
     cstring_free(zerolenstr);
 }
 
-UTEST(test, cstring_append) {
+UTEST(string, cstring_append) {
     cstring_string_type(char) str = NULL;
     cstring_assign(str, literal, strlen_of(literal));
 
@@ -551,7 +551,7 @@ UTEST(test, cstring_append) {
     cstring_free(zerolenstr);
 }
 
-UTEST(test, cstring_replace) {
+UTEST(string, cstring_replace) {
     cstring_string_type(char) str = NULL;
     cstring_assign(str, literal, strlen_of(literal));
 
@@ -588,7 +588,7 @@ UTEST(test, cstring_replace) {
     cstring_free(zerolenstr);
 }
 
-UTEST(test, cstring_copy) {
+UTEST(string, cstring_copy) {
     cstring_string_type(char) str   = NULL;
     cstring_string_type(char) other = NULL;
     cstring_assign(str, literal, strlen_of(literal));
@@ -638,7 +638,7 @@ UTEST(test, cstring_copy) {
     cstring_free(str);
 }
 
-UTEST(test, cstring_resize) {
+UTEST(string, cstring_resize) {
     cstring_string_type(char) str = NULL;
     cstring_assign(str, literal, strlen_of(literal));
 
@@ -680,7 +680,7 @@ UTEST(test, cstring_resize) {
     cstring_free(zerolenstr);
 }
 
-UTEST(test, cstring_swap) {
+UTEST(string, cstring_swap) {
     cstring_string_type(char) str1 = NULL;
     cstring_string_type(char) str2 = NULL;
     cstring_assign(str1, literal, 2);
@@ -739,7 +739,7 @@ UTEST(test, cstring_swap) {
     cstring_free(str1);
 }
 
-UTEST(test, cstring_trim) {
+UTEST(string, cstring_trim) {
     cstring_string_type(char) str = NULL;
     cstring_assign(str, "  ab  ", strlen_of("  ab  "));
     cstring_trim(str, ' ', 3);
@@ -832,7 +832,7 @@ UTEST(test, cstring_trim) {
     ASSERT_EQ(nullstr, NULL);
 }
 
-UTEST(test, cstring_fix) {
+UTEST(string, cstring_fix) {
     cstring_string_type(char) str = NULL;
     cstring_assign(str, "abc", 3);
     cstring_fix(str, 5, ' ', 1);
@@ -930,7 +930,7 @@ UTEST(test, cstring_fix) {
     ASSERT_EQ(nullstr, NULL);
 }
 
-UTEST(test, cstring_reverse) {
+UTEST(string, cstring_reverse) {
     cstring_string_type(char) str = NULL;
     cstring_assign(str, "abc", 3);
     cstring_reverse(str);
@@ -981,7 +981,7 @@ UTEST(test, cstring_reverse) {
     ASSERT_EQ(nullstr, NULL);
 }
 
-UTEST(test, cstring_find_rfind) {
+UTEST(string, cstring_find_rfind) {
     ptrdiff_t off;
     cstring_string_type(char) str = NULL;
     cstring_assign(str, "abcdefghabcdefgh", 16);
@@ -1061,7 +1061,7 @@ UTEST(test, cstring_find_rfind) {
     ASSERT_EQ(off, -1);
 }
 
-UTEST(test, cstring_find_first_of) {
+UTEST(string, cstring_find_first_of) {
     ptrdiff_t off;
     cstring_string_type(char) str = NULL;
     cstring_assign(str, "abcdefghabcdefgh", 16);
@@ -1106,7 +1106,7 @@ UTEST(test, cstring_find_first_of) {
     cstring_free(wstr);
 }
 
-UTEST(test, cstring_find_first_not_of) {
+UTEST(string, cstring_find_first_not_of) {
     ptrdiff_t off;
     cstring_string_type(char) str = NULL;
     cstring_assign(str, "abcdefghabcdefgh", 16);
@@ -1147,7 +1147,7 @@ UTEST(test, cstring_find_first_not_of) {
     cstring_free(wstr);
 }
 
-UTEST(test, cstring_find_last_of) {
+UTEST(string, cstring_find_last_of) {
     ptrdiff_t off;
     cstring_string_type(char) str = NULL;
     cstring_assign(str, "abcdefghabcdefgh", 16);
@@ -1192,7 +1192,7 @@ UTEST(test, cstring_find_last_of) {
     cstring_free(wstr);
 }
 
-UTEST(test, cstring_find_last_not_of) {
+UTEST(string, cstring_find_last_not_of) {
     ptrdiff_t off;
     cstring_string_type(char) str = NULL;
     cstring_assign(str, "abcdefghabcdefgh", 16);
@@ -1237,7 +1237,7 @@ UTEST(test, cstring_find_last_not_of) {
     cstring_free(wstr);
 }
 
-UTEST(test, cstring_compare) {
+UTEST(string, cstring_compare) {
     int res                        = 999;
     cstring_string_type(char) str1 = NULL;
     cstring_string_type(char) str2 = NULL;
@@ -1307,7 +1307,7 @@ UTEST(test, cstring_compare) {
     ASSERT_EQ(res, 999);
 }
 
-UTEST(test, cstring_starts_ends_with) {
+UTEST(string, cstring_starts_ends_with) {
     int res;
     cstring_string_type(char) str = NULL;
     cstring_assign(str, literal, strlen_of(literal));
@@ -1367,7 +1367,7 @@ UTEST(test, cstring_starts_ends_with) {
     ASSERT_EQ(res, 0);
 }
 
-UTEST(test, cstring_contains) {
+UTEST(string, cstring_contains) {
     int res;
     cstring_string_type(char) str = NULL;
     cstring_assign(str, literal, strlen_of(literal));
@@ -1392,7 +1392,7 @@ UTEST(test, cstring_contains) {
     cstring_free(wstr);
 }
 
-UTEST(test, cstring_substring) {
+UTEST(string, cstring_substring) {
     cstring_string_type(char) str    = NULL;
     cstring_string_type(char) substr = NULL;
     cstring_assign(str, literal, strlen_of(literal));
@@ -1447,7 +1447,7 @@ UTEST(test, cstring_substring) {
     cstring_free(str);
 }
 
-UTEST(test, cstring_split) {
+UTEST(array, cstring_split) {
     int i;
     cstring_string_type(char) str = NULL;
     cstring_array_type(char) arr  = NULL;
@@ -1635,7 +1635,7 @@ UTEST(test, cstring_split) {
     ASSERT_EQ(nullarr, NULL);
 }
 
-UTEST(test, cstring_array_front_at_back_begin_end) {
+UTEST(array, cstring_array_front_at_back_begin_end) {
     cstring_string_type(char) str = NULL;
     cstring_array_type(char) arr  = NULL;
 
@@ -1697,7 +1697,7 @@ UTEST(test, cstring_array_front_at_back_begin_end) {
     cstring_array_free(warr);
 }
 
-UTEST(test, cstring_array_empty_max_size) {
+UTEST(array, cstring_array_empty_max_size) {
     cstring_array_type(char) arr = NULL;
     ASSERT_TRUE(cstring_array_empty(arr));
     const size_t ptr_siz = sizeof(char *);
@@ -1721,7 +1721,7 @@ UTEST(test, cstring_array_empty_max_size) {
     }
 }
 
-UTEST(test, cstring_array_reserve_shrink_to_fit) {
+UTEST(array, cstring_array_reserve_shrink_to_fit) {
     cstring_array_type(char) arr = NULL;
     cstring_array_reserve(arr, 50);
     ASSERT_TRUE(cstring_array_empty(arr));
@@ -1741,7 +1741,7 @@ UTEST(test, cstring_array_reserve_shrink_to_fit) {
     cstring_array_free(warr);
 }
 
-UTEST(test, cstring_array_insert_clear) {
+UTEST(array, cstring_array_insert_clear) {
     cstring_string_type(char) str = NULL;
     cstring_array_type(char) arr  = NULL;
 
@@ -1760,7 +1760,7 @@ UTEST(test, cstring_array_insert_clear) {
     cstring_array_free(arr);
 }
 
-UTEST(test, cstring_array_erase) {
+UTEST(array, cstring_array_erase) {
     cstring_string_type(char) str = NULL;
     cstring_array_type(char) arr  = NULL;
 
@@ -1778,7 +1778,7 @@ UTEST(test, cstring_array_erase) {
     cstring_array_free(arr);
 }
 
-UTEST(test, cstring_array_push_pop_back) {
+UTEST(array, cstring_array_push_pop_back) {
     cstring_array_type(char) arr = NULL;
 
     cstring_array_push_back(arr, "abc", 3);
@@ -1798,7 +1798,7 @@ UTEST(test, cstring_array_push_pop_back) {
     cstring_array_free(arr);
 }
 
-UTEST(test, cstring_array_copy_resize_swap) {
+UTEST(array, cstring_array_copy_resize_swap) {
     cstring_string_type(char) str = NULL;
     cstring_array_type(char) from = NULL;
     cstring_array_type(char) to   = NULL;
@@ -1825,7 +1825,7 @@ UTEST(test, cstring_array_copy_resize_swap) {
     cstring_array_free(from);
 }
 
-UTEST(test, cstring_array_slice) {
+UTEST(array, cstring_array_slice) {
     cstring_string_type(char) str = NULL;
     cstring_array_type(char) from = NULL;
     cstring_array_type(char) to   = NULL;
@@ -1853,7 +1853,7 @@ UTEST(test, cstring_array_slice) {
     cstring_array_free(from);
 }
 
-UTEST(test, cstring_array_join) {
+UTEST(array, cstring_array_join) {
     cstring_string_type(char) str = NULL;
     cstring_array_type(char) arr  = NULL;
 
