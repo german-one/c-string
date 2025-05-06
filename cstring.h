@@ -27,21 +27,21 @@
 
 /**
  * @brief cstring_string_type - The string type used in this library.
- * @param type - The type of string to act on.
+ * @param type - The character type of the string to act on.
  */
 #define cstring_string_type(type) \
     type *
 
 /**
  * @brief cstring - Syntactic sugar to retrieve a string type.
- * @param type - The type of string to act on.
+ * @param type - The character type of the string to act on.
  */
 #define cstring(type) \
     cstring_string_type(type)
 
 /**
  * @brief cstring_iterator - The iterator type used for a string.
- * @param type - The type of iterator to act on.
+ * @param type - The character type of the iterator to act on.
  */
 #define cstring_iterator(type) \
     cstring_string_type(type)
@@ -922,8 +922,7 @@
 /* --- vector of cstring --- */
 
 /**
- * @brief cstring_array_type - The vector type of the data provided by
- *                             `cstring_split()`.
+ * @brief cstring_array_type - The type of the data in the vector of strings.
  * @param type - The character type of the strings in the vector.
  */
 #define cstring_array_type(type) \
@@ -1003,8 +1002,8 @@
     } while (0)
 
 /**
- * @brief cstring_array_at - Return the string pointer at position `pos` in
- *                           the cstring_array.
+ * @brief cstring_array_at - Return the pointer to the first character of the
+ *                           string at position `pos` in the cstring_array.
  * @param arr - The cstring_array.
  * @param pos - Position of a string in the vector.
  * @return A string pointer at the specified position in the vector or NULL.
@@ -1013,8 +1012,8 @@
     ((size_t)(pos) < cstring_size(arr) ? (arr)[(size_t)(pos)] : NULL)
 
 /**
- * @brief cstring_array_front - Return the string pointer to the first string in
- *                              the cstring_array.
+ * @brief cstring_array_front - Return the pointer to the first character of the
+ *                              first string in the cstring_array.
  * @details Unlike member cstring_array_begin, which returns an iterator to this
  *          same string, this function returns a direct string pointer.
  * @param arr - The cstring_array.
@@ -1024,8 +1023,8 @@
     (cstring_size(arr) ? *(arr) : NULL)
 
 /**
- * @brief cstring_array_back - Return the string pointer to the last string in
- *                             the cstring_array.
+ * @brief cstring_array_back - Return the pointer to the first character of the
+ *                             last string in the cstring_array.
  * @details Unlike member cstring_array_begin, which returns an iterator just
  *          past this string, this function returns a direct string pointer.
  * @param arr - The cstring_array.
@@ -1038,7 +1037,7 @@
  * @brief cstring_array_begin - Return an iterator to first string of the
  *                              vector.
  * @param arr - The cstring_array.
- * @return A iterator to the first string (or NULL).
+ * @return An iterator to the first string (or NULL).
  */
 #define cstring_array_begin(arr) \
     cstring_begin(arr)
@@ -1047,7 +1046,7 @@
  * @brief cstring_array_end - Return an iterator to one past the last string of
  *                            the vector.
  * @param arr - The cstring_array.
- * @return A pointer to one past the last string (or NULL).
+ * @return An iterator to one past the last string (or NULL).
  */
 #define cstring_array_end(arr) \
     cstring_end(arr)

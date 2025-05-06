@@ -3,6 +3,10 @@ It can be considered an offshoot of the [c-vector](https://github.com/eteran/c-v
 While the `c-vector` library implements macros to emulate methods of a `std::vector`, the `c-string` library is specialized for null-terminated strings of characters. Its macros emulate `std::basic_string` methods. A few additional features are implemented that don't have an equivalent for a `std::basic_string`.  
 The `cstring_array` API extension is for vectors of `cstring`. It supports tokenization (also known as `split`) and concatenation (also known as `join`).  
   
+- Include __cstring.h__ to use the API. No other file of this repository is necessary.  
+- Besides of containing the code for tests, the __cstring-unit-tests.c__ is also meant to provide some examples of how to use the API.  
+- PDF prints of the relevant parts of a Doxygen-generated manual can be found in the __doc__ folder.  
+  
 Just like the `cvector`, a `cstring` is prefixed with metadata, in the tradition of a length-prefixed string implementation.  
 The members of the `cstring` metadata are found at the same offset as those of a `cvector`. They count all characters (incl. the terminating null) which makes a `cstring` _interchangeable_ with a `cvector` of the same set of consecutive characters. Unlike the `cvector` macros (and as is usual for strings) the `cstring` macros, which return size and capacity, do not count the string terminator.  
   
