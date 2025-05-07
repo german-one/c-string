@@ -861,7 +861,7 @@
     } while (0)
 
 /**
- * @brief cstring_ends_with - Check if the string contains the given substring.
+ * @brief cstring_contains - Check if the string contains the given substring.
  * @param str       - The cstring.
  * @param ptr       - Pointer to the first character of the substring.
  * @param count     - Length of the substring.
